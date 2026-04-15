@@ -3,58 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SSEE VITA | Armonía Progresiva</title>
+    <title>SSEE | Piano Onírico</title>
     <style>
         :root { --glow: #00ffcc; --bg: #000; }
         body { background: var(--bg); color: var(--glow); font-family: -apple-system, sans-serif; height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .ui { text-align: center; transition: opacity 1s; width: 100%; padding: 20px; }
-        h1 { font-weight: 200; letter-spacing: 5px; font-size: 0.9rem; opacity: 0.6; }
-        input[type="time"] { background: #111; border: 1px solid #333; color: var(--glow); font-size: 3rem; padding: 15px; border-radius: 20px; text-align: center; width: 80%; margin-bottom: 30px; }
-        .timer { font-size: 4rem; font-family: 'Courier New', monospace; margin: 20px 0; }
-        button { background: var(--glow); color: #000; border: none; padding: 20px 60px; font-size: 1rem; font-weight: bold; border-radius: 50px; cursor: pointer; text-transform: uppercase; }
-        .status { font-size: 0.7rem; letter-spacing: 2px; opacity: 0.4; margin-bottom: 10px; }
-        .blackout { opacity: 0 !important; pointer-events: none; }
+        .ui { text-align: center; width: 100%; transition: opacity 1s; }
+        input[type="time"] { background: #111; border: 1px solid #333; color: var(--glow); font-size: 3rem; padding: 15px; border-radius: 20px; text-align: center; margin-bottom: 30px; outline: none; }
+        .timer { font-size: 4rem; font-family: 'Courier New', monospace; margin: 20px 0; font-weight: bold; }
+        button { background: var(--glow); color: #000; border: none; padding: 20px 60px; font-size: 1.1rem; font-weight: bold; border-radius: 50px; cursor: pointer; text-transform: uppercase; }
+        .status { font-size: 0.7rem; letter-spacing: 2px; opacity: 0.5; margin-bottom: 10px; }
+        .blackout { opacity: 0 !important; }
     </style>
 </head>
 <body>
 
-    <audio id="bgAudio" loop><source src="data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" type="audio/wav"></audio>
+    <audio id="silentAudio" loop><source src="data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" type="audio/wav"></audio>
 
     <div class="ui" id="mainUI">
-        <h1>SSEE VITA | HARMONIC CORE</h1>
+        <h1>SSEE PIANO VITA</h1>
         <div id="setup">
             <input type="time" id="wakeTime" value="05:15">
             <br>
-            <button id="btnStart">ACTIVAR CICLO</button>
+            <button id="btnStart">INICIAR REPOSO</button>
         </div>
         <div id="active" style="display:none;">
-            <div class="status" id="txtStatus">SINTONIZANDO ARMONÍAS...</div>
+            <div class="status" id="txtStatus">COMPONIENDO ATMÓSFERA...</div>
             <div class="timer" id="txtClock">00:00:00</div>
-            <p style="font-size: 0.6rem; opacity: 0.5;">Toca para oscuridad total</p>
+            <p style="font-size: 0.6rem; opacity: 0.4;">Puedes apagar la pantalla ahora</p>
         </div>
     </div>
 
     <script>
-        let audioCtx, masterGain, rainGain, rainFilter, pads = [], wakeLock = null;
+        let audioCtx, masterGain, rainGain, rainFilter, wakeLock = null;
+        const scale = [174.61, 196.00, 220.00, 261.63, 293.66]; // Fa mayor pentatónica (Relajante)
 
-        // Configuración para que iOS lo vea como un reproductor de música
-        function setMediaMetadata() {
+        function setupMedia() {
             if ('mediaSession' in navigator) {
                 navigator.mediaSession.metadata = new MediaMetadata({
-                    title: 'VITA: Ciclo de Sueño',
-                    artist: 'SSEE Architecture',
-                    album: 'Armonía 5D'
+                    title: 'Piano Onírico SSEE',
+                    artist: 'Arquitectura VITA',
+                    album: 'Frecuencias de Reparación'
                 });
             }
         }
 
-        // Generador de Lluvia Orgánica (Pink Noise con LFO)
         function createRain() {
             const bufferSize = 2 * audioCtx.sampleRate;
             const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const output = buffer.getChannelData(0);
-            let b0, b1, b2, b3, b4, b5, b6;
-            b0 = b1 = b2 = b3 = b4 = b5 = b6 = 0.0;
+            let b0, b1, b2, b3, b4, b5, b6; b0 = b1 = b2 = b3 = b4 = b5 = b6 = 0.0;
             for (let i = 0; i < bufferSize; i++) {
                 let white = Math.random() * 2 - 1;
                 b0 = 0.99886 * b0 + white * 0.0555179;
@@ -64,34 +61,39 @@
                 b4 = 0.55000 * b4 + white * 0.5329522;
                 b5 = -0.7616 * b5 - white * 0.0168980;
                 output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
-                output[i] *= 0.15;
-                b6 = white * 0.115926;
+                output[i] *= 0.12; b6 = white * 0.115926;
             }
             const source = audioCtx.createBufferSource();
-            source.buffer = buffer;
-            source.loop = true;
+            source.buffer = buffer; source.loop = true;
             return source;
         }
 
-        // Sintetizador de Armónicos (Pads)
-        function createPad(freq) {
+        // Sintetizador de Piano Suave
+        function playPianoNote(freq, time, volume = 0.1) {
             const osc = audioCtx.createOscillator();
             const g = audioCtx.createGain();
             const f = audioCtx.createBiquadFilter();
+            
             osc.type = 'triangle';
-            osc.frequency.value = freq;
+            osc.frequency.setValueAtTime(freq, time);
+            
             f.type = 'lowpass';
-            f.frequency.value = 300; 
+            f.frequency.setValueAtTime(1000, time);
+            f.frequency.exponentialRampToValueAtTime(200, time + 2);
+
+            g.gain.setValueAtTime(0, time);
+            g.gain.linearRampToValueAtTime(volume, time + 0.1);
+            g.gain.exponentialRampToValueAtTime(0.001, time + 4);
+
             osc.connect(f); f.connect(g); g.connect(masterGain);
-            osc.start();
-            return { osc, filter: f, gain: g };
+            osc.start(time); osc.stop(time + 4);
         }
 
         document.getElementById('btnStart').onclick = async function() {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') await audioCtx.resume();
-            document.getElementById('bgAudio').play(); // Activa el proceso de fondo
-            setMediaMetadata();
+            document.getElementById('silentAudio').play();
+            setupMedia();
 
             const [h, m] = document.getElementById('wakeTime').value.split(':');
             let wakeDate = new Date();
@@ -102,11 +104,9 @@
             document.getElementById('active').style.display = 'block';
 
             masterGain = audioCtx.createGain();
-            masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
-            masterGain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 4);
+            masterGain.gain.setValueAtTime(0.5, audioCtx.currentTime);
             masterGain.connect(audioCtx.destination);
 
-            // Capa 1: Lluvia Orgánica
             const rain = createRain();
             rainFilter = audioCtx.createBiquadFilter();
             rainGain = audioCtx.createGain();
@@ -114,35 +114,46 @@
             rain.connect(rainFilter); rainFilter.connect(rainGain); rainGain.connect(masterGain);
             rain.start();
 
-            // Capa 2: Tríada de Armonía (Acorde ambiental)
-            pads.push(createPad(174)); // Nota base
-            pads.push(createPad(217.5)); // Tercera mayor
-            pads.push(createPad(261)); // Quinta
-            
-            // Capa 3: Oscilador Binaural sutil (Delta a Beta)
-            const binaural = createPad(175.5);
-            pads.push(binaural);
-
-            function update() {
+            // Loop de Piano
+            function scheduler() {
                 const diff = (wakeDate - new Date()) / 1000;
                 if (diff <= 0) return;
 
-                if (diff > 3600) { // SUEÑO
-                    document.getElementById('txtStatus').innerText = "ESTADO: SSEE_REPARACIÓN";
-                    rainFilter.frequency.setTargetAtTime(400, audioCtx.currentTime, 2);
-                    pads.forEach(p => p.filter.frequency.setTargetAtTime(250, audioCtx.currentTime, 2));
-                } else { // DESPERTAR
+                // Tocar una nota cada 4-8 segundos aleatoriamente
+                const nextNoteTime = audioCtx.currentTime + 4 + Math.random() * 4;
+                const randomNote = scale[Math.floor(Math.random() * scale.length)];
+                
+                // Ajustar frecuencia según fase
+                let freqMod = randomNote;
+                if (diff < 3600) {
                     const p = 1 - (diff / 3600);
-                    document.getElementById('txtStatus').innerText = "VITA: ASCENSO ARMÓNICO (" + Math.round(p*100) + "%)";
-                    rainFilter.frequency.setTargetAtTime(400 + (p * 6000), audioCtx.currentTime, 2);
-                    pads.forEach(p => p.filter.frequency.setTargetAtTime(250 + (p * 3000), audioCtx.currentTime, 2));
-                    binaural.osc.frequency.setTargetAtTime(174 + (1.5 + (p * 18)), audioCtx.currentTime, 2);
+                    freqMod = randomNote * (1 + (p * 0.5)); // Sube el tono al despertar
+                }
+                
+                playPianoNote(freqMod, nextNoteTime, diff > 3600 ? 0.05 : 0.08);
+                setTimeout(scheduler, 5000);
+            }
+            scheduler();
+
+            function update() {
+                const diff = (wakeDate - new Date()) / 1000;
+                if (diff <= 0) {
+                    document.getElementById('txtStatus').innerText = "VIGILIA ALCANZADA";
+                    return;
                 }
 
-                const s = Math.floor(diff % 60).toString().padStart(2, '0');
-                const min = Math.floor((diff / 60) % 60).toString().padStart(2, '0');
-                const hr = Math.floor(diff / 3600).toString().padStart(2, '0');
-                document.getElementById('txtClock').innerText = `${hr}:${min}:${s}`;
+                if (diff > 3600) {
+                    document.getElementById('txtStatus').innerText = "ESTADO: SSEE REPARACIÓN (PIANO)";
+                    rainGain.gain.setTargetAtTime(0.2, audioCtx.currentTime, 2);
+                    rainFilter.frequency.setTargetAtTime(400, audioCtx.currentTime, 2);
+                } else {
+                    const p = 1 - (diff / 3600);
+                    document.getElementById('txtStatus').innerText = "VITA: AMANECER (" + Math.round(p*100) + "%)";
+                    rainFilter.frequency.setTargetAtTime(400 + (p * 4000), audioCtx.currentTime, 2);
+                }
+
+                const d = new Date(diff * 1000);
+                document.getElementById('txtClock').innerText = d.toISOString().substr(11, 8);
                 requestAnimationFrame(update);
             }
             update();
