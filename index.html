@@ -1,44 +1,10 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SSEE VITA | Arquitecto de Sueño</title>
-    <style>
-        :root { --glow: #00ffcc; --bg: #000000; }
-        body { background: var(--bg); color: var(--glow); font-family: 'Segoe UI', sans-serif; height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .ui-layer { text-align: center; transition: opacity 1s; }
-        h1 { font-weight: 200; letter-spacing: 5px; font-size: 0.9rem; margin-bottom: 20px; opacity: 0.6; }
-        input[type="time"] { background: transparent; border: 1px solid #333; color: var(--glow); font-size: 3rem; padding: 10px; border-radius: 15px; text-align: center; outline: none; margin-bottom: 20px; }
-        .timer { font-size: 4.5rem; font-family: 'Courier New', monospace; margin: 20px 0; }
-        button { background: var(--glow); color: #000; border: none; padding: 20px 60px; font-size: 1rem; font-weight: bold; border-radius: 50px; cursor: pointer; text-transform: uppercase; }
-        .status { font-size: 0.7rem; letter-spacing: 2px; opacity: 0.5; margin-bottom: 10px; }
-        .blackout { opacity: 0 !important; pointer-events: none; }
-        #debug { position: fixed; bottom: 10px; font-size: 0.6rem; opacity: 0.3; }
-    </style>
-</head>
-<body>
+<script>
+    // Debugging script
+    console.log('Initializing audio...');
 
-    <div class="ui-layer" id="mainUI">
-        <h1>SSEE PROTOCOL: VITA-ALPHA</h1>
-        <div id="setup">
-            <input type="time" id="wakeTime" value="05:15">
-            <br>
-            <button id="btnStart">ACTIVAR CICLO</button>
-        </div>
-        <div id="active" style="display:none;">
-            <div class="status" id="txtStatus">INICIALIZANDO...</div>
-            <div class="timer" id="txtClock">00:00:00</div>
-            <p style="font-size: 0.7rem;">Toca la pantalla para oscurecer</p>
-        </div>
-    </div>
+    // Audio initialization code
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    console.log('Audio context created:', audioContext);
 
-    <div id="debug">SSEE_CORE_READY</div>
-
-    <script>
-        let audioCtx, masterGain, wakeLock = null;
-        let rainNode, oscL, oscR;
-        // Your JavaScript code here...
-    </script>
-</body>
-</html>
+    // More audio setup...
+</script>
