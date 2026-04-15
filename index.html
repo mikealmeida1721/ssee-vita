@@ -3,51 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SSEE | Piano Onírico</title>
+    <title>SSEE VITA | Piano Background</title>
     <style>
         :root { --glow: #00ffcc; --bg: #000; }
         body { background: var(--bg); color: var(--glow); font-family: -apple-system, sans-serif; height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .ui { text-align: center; width: 100%; transition: opacity 1s; }
-        input[type="time"] { background: #111; border: 1px solid #333; color: var(--glow); font-size: 3rem; padding: 15px; border-radius: 20px; text-align: center; margin-bottom: 30px; outline: none; }
+        .ui { text-align: center; width: 100%; padding: 20px; }
+        h1 { font-weight: 200; letter-spacing: 5px; font-size: 0.9rem; opacity: 0.6; margin-bottom: 30px; }
+        input[type="time"] { background: #111; border: 1px solid #333; color: var(--glow); font-size: 3.5rem; padding: 10px; border-radius: 20px; text-align: center; width: 80%; margin-bottom: 30px; outline: none; }
         .timer { font-size: 4rem; font-family: 'Courier New', monospace; margin: 20px 0; font-weight: bold; }
         button { background: var(--glow); color: #000; border: none; padding: 20px 60px; font-size: 1.1rem; font-weight: bold; border-radius: 50px; cursor: pointer; text-transform: uppercase; }
-        .status { font-size: 0.7rem; letter-spacing: 2px; opacity: 0.5; margin-bottom: 10px; }
-        .blackout { opacity: 0 !important; }
+        .status { font-size: 0.7rem; letter-spacing: 2px; opacity: 0.4; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
-    <audio id="silentAudio" loop><source src="data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" type="audio/wav"></audio>
+    <audio id="silentAnchor" loop playsinline>
+        <source src="data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" type="audio/wav">
+    </audio>
 
-    <div class="ui" id="mainUI">
-        <h1>SSEE PIANO VITA</h1>
+    <div class="ui">
+        <h1>SSEE VITA | PIANO HARMONICS</h1>
         <div id="setup">
             <input type="time" id="wakeTime" value="05:15">
             <br>
-            <button id="btnStart">INICIAR REPOSO</button>
+            <button id="btnStart">ACTIVAR CICLO</button>
         </div>
         <div id="active" style="display:none;">
-            <div class="status" id="txtStatus">COMPONIENDO ATMÓSFERA...</div>
+            <div class="status" id="txtStatus">SINTONIZANDO SEGUNDO PLANO...</div>
             <div class="timer" id="txtClock">00:00:00</div>
-            <p style="font-size: 0.6rem; opacity: 0.4;">Puedes apagar la pantalla ahora</p>
+            <p style="font-size: 0.6rem; opacity: 0.5;">Ya puedes apagar la pantalla</p>
         </div>
     </div>
 
     <script>
-        let audioCtx, masterGain, rainGain, rainFilter, wakeLock = null;
-        const scale = [174.61, 196.00, 220.00, 261.63, 293.66]; // Fa mayor pentatónica (Relajante)
+        let audioCtx, masterGain, rainGain, rainFilter;
+        const pianoScale = [174.61, 196.00, 220.00, 261.63, 293.66, 329.63]; // Escala armónica relajante
 
-        function setupMedia() {
+        function initMediaSession() {
             if ('mediaSession' in navigator) {
                 navigator.mediaSession.metadata = new MediaMetadata({
-                    title: 'Piano Onírico SSEE',
-                    artist: 'Arquitectura VITA',
-                    album: 'Frecuencias de Reparación'
+                    title: 'VITA: Piano y Lluvia',
+                    artist: 'SSEE Protocol',
+                    album: 'Reparación Biológica'
                 });
+                // Evita que iOS pause el contexto al detectar "silencio"
+                navigator.mediaSession.setActionHandler('play', () => audioCtx.resume());
+                navigator.mediaSession.setActionHandler('pause', () => audioCtx.suspend());
             }
         }
 
-        function createRain() {
+        function createPinkNoise() {
             const bufferSize = 2 * audioCtx.sampleRate;
             const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const output = buffer.getChannelData(0);
@@ -68,32 +73,35 @@
             return source;
         }
 
-        // Sintetizador de Piano Suave
-        function playPianoNote(freq, time, volume = 0.1) {
+        function playPiano(freq, time) {
             const osc = audioCtx.createOscillator();
-            const g = audioCtx.createGain();
-            const f = audioCtx.createBiquadFilter();
+            const gain = audioCtx.createGain();
+            const filter = audioCtx.createBiquadFilter();
             
             osc.type = 'triangle';
             osc.frequency.setValueAtTime(freq, time);
             
-            f.type = 'lowpass';
-            f.frequency.setValueAtTime(1000, time);
-            f.frequency.exponentialRampToValueAtTime(200, time + 2);
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(800, time);
+            filter.frequency.exponentialRampToValueAtTime(150, time + 3);
 
-            g.gain.setValueAtTime(0, time);
-            g.gain.linearRampToValueAtTime(volume, time + 0.1);
-            g.gain.exponentialRampToValueAtTime(0.001, time + 4);
+            gain.gain.setValueAtTime(0, time);
+            gain.gain.linearRampToValueAtTime(0.06, time + 0.2);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + 5);
 
-            osc.connect(f); f.connect(g); g.connect(masterGain);
-            osc.start(time); osc.stop(time + 4);
+            osc.connect(filter); filter.connect(gain); gain.connect(masterGain);
+            osc.start(time); osc.stop(time + 5);
         }
 
         document.getElementById('btnStart').onclick = async function() {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') await audioCtx.resume();
-            document.getElementById('silentAudio').play();
-            setupMedia();
+            
+            // Iniciar ancla de audio
+            const anchor = document.getElementById('silentAnchor');
+            anchor.play();
+            
+            initMediaSession();
 
             const [h, m] = document.getElementById('wakeTime').value.split(':');
             let wakeDate = new Date();
@@ -107,62 +115,50 @@
             masterGain.gain.setValueAtTime(0.5, audioCtx.currentTime);
             masterGain.connect(audioCtx.destination);
 
-            const rain = createRain();
+            const rain = createPinkNoise();
             rainFilter = audioCtx.createBiquadFilter();
             rainGain = audioCtx.createGain();
             rainFilter.type = "lowpass";
             rain.connect(rainFilter); rainFilter.connect(rainGain); rainGain.connect(masterGain);
             rain.start();
 
-            // Loop de Piano
-            function scheduler() {
+            // Pianista procedural lento
+            function pianoLoop() {
                 const diff = (wakeDate - new Date()) / 1000;
                 if (diff <= 0) return;
 
-                // Tocar una nota cada 4-8 segundos aleatoriamente
-                const nextNoteTime = audioCtx.currentTime + 4 + Math.random() * 4;
-                const randomNote = scale[Math.floor(Math.random() * scale.length)];
+                const note = pianoScale[Math.floor(Math.random() * pianoScale.length)];
+                let octave = diff > 3600 ? 0.5 : 1; // Más grave al dormir, más agudo al despertar
+                playPiano(note * octave, audioCtx.currentTime + 1);
                 
-                // Ajustar frecuencia según fase
-                let freqMod = randomNote;
-                if (diff < 3600) {
-                    const p = 1 - (diff / 3600);
-                    freqMod = randomNote * (1 + (p * 0.5)); // Sube el tono al despertar
-                }
-                
-                playPianoNote(freqMod, nextNoteTime, diff > 3600 ? 0.05 : 0.08);
-                setTimeout(scheduler, 5000);
+                // Intervalos irregulares para evitar la monotonía (6 a 12 segundos)
+                setTimeout(pianoLoop, 6000 + Math.random() * 6000);
             }
-            scheduler();
+            pianoLoop();
 
-            function update() {
+            function updateUI() {
                 const diff = (wakeDate - new Date()) / 1000;
                 if (diff <= 0) {
-                    document.getElementById('txtStatus').innerText = "VIGILIA ALCANZADA";
+                    document.getElementById('txtStatus').innerText = "VIGILIA TOTAL";
                     return;
                 }
 
                 if (diff > 3600) {
                     document.getElementById('txtStatus').innerText = "ESTADO: SSEE REPARACIÓN (PIANO)";
                     rainGain.gain.setTargetAtTime(0.2, audioCtx.currentTime, 2);
-                    rainFilter.frequency.setTargetAtTime(400, audioCtx.currentTime, 2);
+                    rainFilter.frequency.setTargetAtTime(300, audioCtx.currentTime, 2);
                 } else {
                     const p = 1 - (diff / 3600);
                     document.getElementById('txtStatus').innerText = "VITA: AMANECER (" + Math.round(p*100) + "%)";
-                    rainFilter.frequency.setTargetAtTime(400 + (p * 4000), audioCtx.currentTime, 2);
+                    rainFilter.frequency.setTargetAtTime(300 + (p * 5000), audioCtx.currentTime, 2);
+                    rainGain.gain.setTargetAtTime(0.2 * (1-p), audioCtx.currentTime, 2);
                 }
 
                 const d = new Date(diff * 1000);
                 document.getElementById('txtClock').innerText = d.toISOString().substr(11, 8);
-                requestAnimationFrame(update);
+                requestAnimationFrame(updateUI);
             }
-            update();
-        };
-
-        document.body.onclick = () => {
-            if (document.getElementById('active').style.display === 'block') {
-                document.getElementById('mainUI').classList.toggle('blackout');
-            }
+            updateUI();
         };
     </script>
 </body>
