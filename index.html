@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SSEE V11 | Tejedor de Sueños</title>
+    <title>SSEE V12 | Motor de Ciclos</title>
     <style>
         :root { --glow: #00ffcc; --bg: #000; }
         body { background: var(--bg); color: #444; font-family: -apple-system, sans-serif; height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .ui { text-align: center; width: 90%; max-width: 400px; z-index: 10; }
-        h1 { font-weight: 200; letter-spacing: 5px; font-size: 0.8rem; color: var(--glow); margin-bottom: 30px; opacity: 0.7; }
-        .timer { font-size: 4.5rem; font-family: 'Courier New', monospace; color: var(--glow); font-weight: bold; margin-bottom: 30px; text-shadow: 0 0 20px rgba(0,255,204,0.3); }
+        h1 { font-weight: 200; letter-spacing: 5px; font-size: 0.8rem; color: var(--glow); margin-bottom: 30px; opacity: 0.6; }
+        .timer { font-size: 4.5rem; font-family: 'Courier New', monospace; color: var(--glow); font-weight: bold; margin-bottom: 30px; }
         input[type="time"] { background: #0a0a0a; border: 1px solid #222; color: var(--glow); font-size: 3rem; padding: 15px; border-radius: 20px; text-align: center; width: 80%; margin-bottom: 30px; outline: none; }
         button { background: var(--glow); color: #000; border: none; padding: 20px; font-size: 1rem; font-weight: 800; border-radius: 50px; cursor: pointer; text-transform: uppercase; width: 100%; letter-spacing: 3px; }
-        .status { font-size: 0.7rem; letter-spacing: 2px; margin-bottom: 10px; text-transform: uppercase; }
+        .status { font-size: 0.65rem; letter-spacing: 2px; margin-bottom: 10px; text-transform: uppercase; color: #666; }
         .blackout { opacity: 0 !important; }
-        video { position: fixed; top: 0; left: 0; width: 1px; height: 1px; opacity: 0.01; } /* Hack de video para iOS */
+        video { position: fixed; top: 0; left: 0; width: 1px; height: 1px; opacity: 0.01; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -24,122 +24,129 @@
     </video>
 
     <div class="ui" id="mainUI">
-        <h1>SSEE V11 | NARRATIVA SÓNICA</h1>
+        <h1>SSEE V12 | CICLOS BIOLÓGICOS</h1>
         <div id="setup">
             <input type="time" id="wakeTime" value="05:15">
-            <button id="btnStart">INICIAR HISTORIA</button>
+            <button id="btnStart">ACTIVAR MATRIZ</button>
         </div>
         <div id="active" style="display:none;">
-            <div class="status" id="txtStatus">SINCRONIZANDO CON EL ARQUITECTO...</div>
+            <div class="status" id="txtStatus">SINCRO...</div>
             <div class="timer" id="txtClock">00:00:00</div>
-            <p style="font-size: 0.6rem;">La historia ha comenzado. Puedes bloquear tu iPhone.</p>
+            <p style="font-size: 0.55rem; color: #333;">PI + PHI = OMEGA DNAV | Ciclos de 90 min Activos</p>
         </div>
     </div>
 
     <script>
-        let audioCtx, masterGain, chords = [], isoModulator, wakeDate;
-        const scale = [174.61, 220.00, 261.63, 329.63]; // Acorde Fa Mayor 7 (Armonía Pura)
+        let audioCtx, masterGain, pianoNodes = [], isoModulator, wakeDate, startTime;
+        const scale = [174.61, 220.00, 261.63, 329.63, 392.00]; 
 
-        function setMediaSession() {
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.metadata = new MediaMetadata({
-                    title: 'Fábula Sónica SSEE',
-                    artist: 'Ingeniería de Realidad',
-                    album: 'VITA V11'
-                });
-            }
-        }
-
-        // Sintetizador Atmosférico (Notas que respiran)
-        function createAtmosPad(freq) {
-            const osc = audioCtx.createOscillator();
+        // Piano con armónicos y resonancia
+        function playComplexNote(freq, time, filterFreq, volume) {
+            const osc1 = audioCtx.createOscillator();
+            const osc2 = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             const filter = audioCtx.createBiquadFilter();
-            
-            osc.type = 'triangle';
-            osc.frequency.value = freq;
-            
+
+            osc1.type = 'triangle'; osc2.type = 'sine';
+            osc1.frequency.value = freq;
+            osc2.frequency.value = freq * 1.005; // Detuning para dar grosor
+
             filter.type = 'lowpass';
-            filter.frequency.value = 200; // Sonido muy oscuro al inicio
-            
-            // LFO para que la nota "respire" (suba y baja de volumen)
-            const lfo = audioCtx.createOscillator();
-            const lfoGain = audioCtx.createGain();
-            lfo.frequency.value = 0.1; // Respiración muy lenta
-            lfoGain.gain.value = 0.05;
-            lfo.connect(lfoGain); lfoGain.connect(gain.gain);
-            
-            osc.connect(filter); filter.connect(gain); gain.connect(masterGain);
-            
-            osc.start(); lfo.start();
-            return { osc, filter, gain };
+            filter.frequency.setValueAtTime(filterFreq, time);
+            filter.frequency.exponentialRampToValueAtTime(50, time + 4);
+
+            gain.gain.setValueAtTime(0, time);
+            gain.gain.linearRampToValueAtTime(volume, time + 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + 5);
+
+            osc1.connect(filter); osc2.connect(filter);
+            filter.connect(gain); gain.connect(masterGain);
+
+            osc1.start(time); osc2.start(time);
+            osc1.stop(time + 5); osc2.stop(time + 5);
         }
 
         document.getElementById('btnStart').onclick = async function() {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') await audioCtx.resume();
-            
-            document.getElementById('iosLock').play(); // Activar persistencia
-            setMediaSession();
+            document.getElementById('iosLock').play();
+            startTime = Date.now();
 
             const [h, m] = document.getElementById('wakeTime').value.split(':');
-            wakeDate = new Date();
-            wakeDate.setHours(h, m, 0, 0);
+            wakeDate = new Date(); wakeDate.setHours(h, m, 0, 0);
             if (wakeDate <= new Date()) wakeDate.setDate(wakeDate.getDate() + 1);
 
             document.getElementById('setup').style.display = 'none';
             document.getElementById('active').style.display = 'block';
 
             masterGain = audioCtx.createGain();
-            masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
-            masterGain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 5);
+            masterGain.gain.value = 0.5;
             masterGain.connect(audioCtx.destination);
 
-            // Capa 1: Armonía Atmosférica (4 notas)
-            scale.forEach(f => chords.push(createAtmosPad(f)));
-
-            // Capa 2: Pulso Biológico (El narrador invisible)
+            // Capa Biológica (Pulso base)
             const carrier = audioCtx.createOscillator();
             const vca = audioCtx.createGain();
             isoModulator = audioCtx.createOscillator();
             const modGain = audioCtx.createGain();
-            
-            carrier.type = 'sine'; carrier.frequency.value = 85; // Pulso grave
-            isoModulator.frequency.value = 1.5; // Delta inicial
-            vca.gain.value = 0; modGain.gain.value = 0.5;
+            carrier.type = 'sine'; carrier.frequency.value = 75; // Frecuencia grave cómoda
+            isoModulator.frequency.value = 8; // Inicia en Alpha
+            vca.gain.value = 0; modGain.gain.value = 0.4;
             isoModulator.connect(modGain); modGain.connect(vca.gain);
             carrier.connect(vca); vca.connect(masterGain);
             carrier.start(); isoModulator.start();
 
-            function update() {
+            // Pianista Inteligente
+            function composer() {
                 const diff = (wakeDate - new Date()) / 1000;
                 if (diff <= 0) return;
 
-                // LÓGICA DE CICLOS PROPORCIONALES
-                // Dividimos el tiempo en ciclos de 90 min (5400 seg)
-                const currentCyclePosition = (diff % 5400) / 5400; 
+                const elapsedSecs = (Date.now() - startTime) / 1000;
+                const cyclePos = (elapsedSecs % 5400) / 5400; // Posición en el ciclo de 90 min
 
-                if (diff > 3600) {
-                    // MODO SUEÑO: La historia es profunda y oscura
-                    document.getElementById('txtStatus').innerText = "LA HISTORIA: EL ABISMO (DELTA)";
-                    isoModulator.frequency.setTargetAtTime(1.5, audioCtx.currentTime, 5);
-                    chords.forEach(p => p.filter.frequency.setTargetAtTime(150, audioCtx.currentTime, 5));
+                let currentFreq, currentFilter, currentVol;
+
+                if (diff < 3600) { // RAMPA DESPERTAR FINAL
+                    currentFreq = 12 + ((1 - (diff/3600)) * 8); // De 12Hz a 20Hz
+                    currentFilter = 2000; currentVol = 0.1;
                 } else {
-                    // MODO DESPERTAR: La historia sale a la luz
-                    const p = 1 - (diff / 3600);
-                    document.getElementById('txtStatus').innerText = "LA HISTORIA: EL AMANECER (" + Math.round(p*100) + "%)";
-                    isoModulator.frequency.setTargetAtTime(1.5 + (p * 18.5), audioCtx.currentTime, 5);
-                    chords.forEach(p => p.filter.frequency.setTargetAtTime(150 + (p * 4000), audioCtx.currentTime, 5));
+                    // LÓGICA DE CICLO DE 90 MINUTOS
+                    if (cyclePos < 0.2) { // INDUCCIÓN (Alpha a Theta)
+                        currentFreq = 10 - (cyclePos * 20); // Baja de 10 a 6Hz
+                        currentFilter = 600; currentVol = 0.05;
+                    } else if (cyclePos < 0.7) { // SUEÑO PROFUNDO (Delta)
+                        currentFreq = 1.5; 
+                        currentFilter = 150; currentVol = 0.02;
+                    } else { // SUEÑO REM/LIGERO (Vuelve a subir)
+                        currentFreq = 6 + ((cyclePos - 0.7) * 10); // Sube a 9Hz
+                        currentFilter = 800; currentVol = 0.06;
+                    }
                 }
 
-                const s = Math.floor(diff % 60).toString().padStart(2, '0');
-                const min = Math.floor((diff / 60) % 60).toString().padStart(2, '0');
-                const hr = Math.floor(diff / 3600).toString().padStart(2, '0');
-                document.getElementById('txtClock').innerText = `${hr}:${min}:${s}`;
+                isoModulator.frequency.setTargetAtTime(currentFreq, audioCtx.currentTime, 2);
                 
-                requestAnimationFrame(update);
+                // Tocar nota de piano armónica
+                const note = scale[Math.floor(Math.random() * scale.length)];
+                playComplexNote(note * (currentFilter < 300 ? 0.5 : 1), audioCtx.currentTime, currentFilter, currentVol);
+
+                setTimeout(composer, 6000 + Math.random() * 4000);
             }
-            update();
+            composer();
+
+            function engine() {
+                const diff = (wakeDate - new Date()) / 1000;
+                if (diff <= 0) { document.getElementById('txtStatus').innerText = "VIGILIA TOTAL"; return; }
+                
+                const elapsedSecs = (Date.now() - startTime) / 1000;
+                const cycleNum = Math.floor(elapsedSecs / 5400) + 1;
+                const cyclePos = Math.round(((elapsedSecs % 5400) / 5400) * 100);
+
+                document.getElementById('txtStatus').innerText = `CICLO ${cycleNum} (${cyclePos}%) | FREQ: ${isoModulator.frequency.value.toFixed(1)}Hz`;
+                
+                const d = new Date(diff * 1000);
+                document.getElementById('txtClock').innerText = d.toISOString().substr(11, 8);
+                requestAnimationFrame(engine);
+            }
+            engine();
         };
 
         document.body.onclick = () => {
