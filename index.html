@@ -3,113 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SSEE V8 | Ingeniero de Realidad</title>
+    <title>SSEE V11 | Tejedor de Sueños</title>
     <style>
         :root { --glow: #00ffcc; --bg: #000; }
-        body { background: var(--bg); color: #888; font-family: -apple-system, sans-serif; height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .ui { text-align: center; width: 90%; max-width: 400px; transition: opacity 1s; }
-        h1 { font-weight: 200; letter-spacing: 5px; font-size: 0.9rem; color: var(--glow); margin-bottom: 20px; }
-        .card { background: #0a0a0a; border: 1px solid #222; border-radius: 20px; padding: 20px; margin-bottom: 15px; }
-        label { display: block; font-size: 0.7rem; letter-spacing: 2px; margin-bottom: 10px; color: #555; text-transform: uppercase; }
-        input[type="time"] { background: transparent; border: none; color: var(--glow); font-size: 3rem; text-align: center; outline: none; width: 100%; }
-        select { background: #111; border: 1px solid #333; color: var(--glow); font-size: 1rem; padding: 12px; border-radius: 10px; width: 100%; outline: none; appearance: none; text-align: center; }
-        .timer { font-size: 4rem; font-family: 'Courier New', monospace; margin: 15px 0; color: var(--glow); font-weight: bold; }
-        button { background: var(--glow); color: #000; border: none; padding: 20px; font-size: 1rem; font-weight: 800; border-radius: 50px; cursor: pointer; text-transform: uppercase; width: 100%; letter-spacing: 2px; }
-        .status { font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 5px; }
+        body { background: var(--bg); color: #444; font-family: -apple-system, sans-serif; height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .ui { text-align: center; width: 90%; max-width: 400px; z-index: 10; }
+        h1 { font-weight: 200; letter-spacing: 5px; font-size: 0.8rem; color: var(--glow); margin-bottom: 30px; opacity: 0.7; }
+        .timer { font-size: 4.5rem; font-family: 'Courier New', monospace; color: var(--glow); font-weight: bold; margin-bottom: 30px; text-shadow: 0 0 20px rgba(0,255,204,0.3); }
+        input[type="time"] { background: #0a0a0a; border: 1px solid #222; color: var(--glow); font-size: 3rem; padding: 15px; border-radius: 20px; text-align: center; width: 80%; margin-bottom: 30px; outline: none; }
+        button { background: var(--glow); color: #000; border: none; padding: 20px; font-size: 1rem; font-weight: 800; border-radius: 50px; cursor: pointer; text-transform: uppercase; width: 100%; letter-spacing: 3px; }
+        .status { font-size: 0.7rem; letter-spacing: 2px; margin-bottom: 10px; text-transform: uppercase; }
         .blackout { opacity: 0 !important; }
+        video { position: fixed; top: 0; left: 0; width: 1px; height: 1px; opacity: 0.01; } /* Hack de video para iOS */
     </style>
 </head>
 <body>
 
-    <audio id="silentAnchor" loop playsinline><source src="data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" type="audio/wav"></audio>
+    <video id="iosLock" loop playsinline muted>
+        <source src="data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAAhtZGF0" type="video/mp4">
+    </video>
 
     <div class="ui" id="mainUI">
-        <h1>SSEE VITA | ENGINE V8</h1>
+        <h1>SSEE V11 | NARRATIVA SÓNICA</h1>
         <div id="setup">
-            <div class="card">
-                <label>Despertar</label>
-                <input type="time" id="wakeTime" value="05:15">
-            </div>
-            <div class="card">
-                <label>Atmósfera</label>
-                <select id="mode">
-                    <option value="piano">Piano Onírico (Rhodes)</option>
-                    <option value="rain">Lluvia Orgánica</option>
-                    <option value="stream">Arroyo en Movimiento</option>
-                </select>
-            </div>
-            <button id="btnStart">ACTIVAR PROTOCOLO</button>
+            <input type="time" id="wakeTime" value="05:15">
+            <button id="btnStart">INICIAR HISTORIA</button>
         </div>
-
         <div id="active" style="display:none;">
-            <div class="status" id="txtStatus">ESTABILIZANDO FRECUENCIAS...</div>
+            <div class="status" id="txtStatus">SINCRONIZANDO CON EL ARQUITECTO...</div>
             <div class="timer" id="txtClock">00:00:00</div>
-            <p style="font-size: 0.6rem;">Toca para oscuridad total. Audio en segundo plano activo.</p>
+            <p style="font-size: 0.6rem;">La historia ha comenzado. Puedes bloquear tu iPhone.</p>
         </div>
     </div>
 
     <script>
-        let audioCtx, masterGain, ambientGain, ambientFilter, isoGain, isoOsc;
-        const notes = [174.61, 196.00, 220.00, 261.63, 293.66, 329.63]; // Escala Armónica
+        let audioCtx, masterGain, chords = [], isoModulator, wakeDate;
+        const scale = [174.61, 220.00, 261.63, 329.63]; // Acorde Fa Mayor 7 (Armonía Pura)
 
-        function setMedia() {
+        function setMediaSession() {
             if ('mediaSession' in navigator) {
                 navigator.mediaSession.metadata = new MediaMetadata({
-                    title: 'SSEE VITA: Bio-Armonía',
-                    artist: 'M.E.A.V. Protocol',
-                    album: 'Ingeniería del Sueño'
+                    title: 'Fábula Sónica SSEE',
+                    artist: 'Ingeniería de Realidad',
+                    album: 'VITA V11'
                 });
             }
         }
 
-        // Generador de Ruido Rosa (Lluvia Realista)
-        function createPinkNoise() {
-            const bufferSize = 2 * audioCtx.sampleRate;
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            let b0, b1, b2, b3, b4, b5, b6; b0=b1=b2=b3=b4=b5=b6=0;
-            for (let i = 0; i < bufferSize; i++) {
-                let white = Math.random() * 2 - 1;
-                b0 = 0.99886 * b0 + white * 0.0555179;
-                b1 = 0.99332 * b1 + white * 0.0750759;
-                b2 = 0.96900 * b2 + white * 0.1538520;
-                b3 = 0.86650 * b3 + white * 0.3104856;
-                b4 = 0.55000 * b4 + white * 0.5329522;
-                b5 = -0.7616 * b5 - white * 0.0168980;
-                data[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
-                data[i] *= 0.11; b6 = white * 0.115926;
-            }
-            const src = audioCtx.createBufferSource();
-            src.buffer = buffer; src.loop = true;
-            return src;
-        }
-
-        // Piano Sintetizado Armónico
-        function playNote(freq, time, dur = 4) {
+        // Sintetizador Atmosférico (Notas que respiran)
+        function createAtmosPad(freq) {
             const osc = audioCtx.createOscillator();
-            const g = audioCtx.createGain();
-            const f = audioCtx.createBiquadFilter();
+            const gain = audioCtx.createGain();
+            const filter = audioCtx.createBiquadFilter();
+            
             osc.type = 'triangle';
-            osc.frequency.setValueAtTime(freq, time);
-            f.type = 'lowpass';
-            f.frequency.setValueAtTime(600, time);
-            f.frequency.exponentialRampToValueAtTime(100, time + dur);
-            g.gain.setValueAtTime(0, time);
-            g.gain.linearRampToValueAtTime(0.08, time + 0.1);
-            g.gain.exponentialRampToValueAtTime(0.001, time + dur);
-            osc.connect(f); f.connect(g); g.connect(masterGain);
-            osc.start(time); osc.stop(time + dur);
+            osc.frequency.value = freq;
+            
+            filter.type = 'lowpass';
+            filter.frequency.value = 200; // Sonido muy oscuro al inicio
+            
+            // LFO para que la nota "respire" (suba y baja de volumen)
+            const lfo = audioCtx.createOscillator();
+            const lfoGain = audioCtx.createGain();
+            lfo.frequency.value = 0.1; // Respiración muy lenta
+            lfoGain.gain.value = 0.05;
+            lfo.connect(lfoGain); lfoGain.connect(gain.gain);
+            
+            osc.connect(filter); filter.connect(gain); gain.connect(masterGain);
+            
+            osc.start(); lfo.start();
+            return { osc, filter, gain };
         }
 
         document.getElementById('btnStart').onclick = async function() {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') await audioCtx.resume();
-            document.getElementById('silentAnchor').play();
-            setMedia();
+            
+            document.getElementById('iosLock').play(); // Activar persistencia
+            setMediaSession();
 
-            const wakeValue = document.getElementById('wakeTime').value;
-            const [h, m] = wakeValue.split(':');
-            let wakeDate = new Date();
+            const [h, m] = document.getElementById('wakeTime').value.split(':');
+            wakeDate = new Date();
             wakeDate.setHours(h, m, 0, 0);
             if (wakeDate <= new Date()) wakeDate.setDate(wakeDate.getDate() + 1);
 
@@ -117,76 +91,62 @@
             document.getElementById('active').style.display = 'block';
 
             masterGain = audioCtx.createGain();
-            masterGain.gain.setValueAtTime(0.6, audioCtx.currentTime);
+            masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            masterGain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 5);
             masterGain.connect(audioCtx.destination);
 
-            const mode = document.getElementById('mode').value;
+            // Capa 1: Armonía Atmosférica (4 notas)
+            scale.forEach(f => chords.push(createAtmosPad(f)));
+
+            // Capa 2: Pulso Biológico (El narrador invisible)
+            const carrier = audioCtx.createOscillator();
+            const vca = audioCtx.createGain();
+            isoModulator = audioCtx.createOscillator();
+            const modGain = audioCtx.createGain();
             
-            // CAPA AMBIENTAL
-            if (mode === 'rain' || mode === 'stream') {
-                const noise = createPinkNoise();
-                ambientFilter = audioCtx.createBiquadFilter();
-                ambientGain = audioCtx.createGain();
-                ambientFilter.type = 'lowpass';
-                ambientFilter.frequency.value = (mode === 'rain') ? 400 : 800;
-                noise.connect(ambientFilter); ambientFilter.connect(ambientGain);
-                ambientGain.connect(masterGain);
-                noise.start();
-            }
-
-            // MOTOR DE PIANO O CAPA BIOLÓGICA
-            function pianoLoop() {
-                const diff = (wakeDate - new Date()) / 1000;
-                if (diff <= 0) return;
-                if (mode === 'piano') {
-                    const note = notes[Math.floor(Math.random() * notes.length)];
-                    playNote(note * (diff > 3600 ? 0.5 : 1), audioCtx.currentTime + 0.5);
-                }
-                setTimeout(pianoLoop, 5000 + Math.random() * 5000);
-            }
-            pianoLoop();
-
-            // CAPA ISOCRÓNICA (OCULTA)
-            isoOsc = audioCtx.createOscillator();
-            const isoVCA = audioCtx.createGain();
-            const isoLFO = audioCtx.createOscillator();
-            const lfoGain = audioCtx.createGain();
-            isoOsc.frequency.value = 75; // Frecuencia subgrave relajante
-            isoLFO.frequency.value = 1.5; // Delta inicial
-            lfoGain.gain.value = 0.5;
-            isoLFO.connect(lfoGain); lfoGain.connect(isoVCA.gain);
-            isoOsc.connect(isoVCA); isoVCA.connect(masterGain);
-            isoOsc.start(); isoLFO.start();
-            isoGain = isoVCA; // Referencia para el loop
+            carrier.type = 'sine'; carrier.frequency.value = 85; // Pulso grave
+            isoModulator.frequency.value = 1.5; // Delta inicial
+            vca.gain.value = 0; modGain.gain.value = 0.5;
+            isoModulator.connect(modGain); modGain.connect(vca.gain);
+            carrier.connect(vca); vca.connect(masterGain);
+            carrier.start(); isoModulator.start();
 
             function update() {
                 const diff = (wakeDate - new Date()) / 1000;
-                if (diff <= 0) { document.getElementById('txtStatus').innerText = "VIGILIA COMPLETA"; return; }
+                if (diff <= 0) return;
+
+                // LÓGICA DE CICLOS PROPORCIONALES
+                // Dividimos el tiempo en ciclos de 90 min (5400 seg)
+                const currentCyclePosition = (diff % 5400) / 5400; 
 
                 if (diff > 3600) {
-                    document.getElementById('txtStatus').innerText = "ESTADO: REPARACIÓN SSEE";
-                    isoLFO.frequency.setTargetAtTime(1.5, audioCtx.currentTime, 2);
-                    if (ambientFilter) ambientFilter.frequency.setTargetAtTime(300, audioCtx.currentTime, 2);
+                    // MODO SUEÑO: La historia es profunda y oscura
+                    document.getElementById('txtStatus').innerText = "LA HISTORIA: EL ABISMO (DELTA)";
+                    isoModulator.frequency.setTargetAtTime(1.5, audioCtx.currentTime, 5);
+                    chords.forEach(p => p.filter.frequency.setTargetAtTime(150, audioCtx.currentTime, 5));
                 } else {
+                    // MODO DESPERTAR: La historia sale a la luz
                     const p = 1 - (diff / 3600);
-                    document.getElementById('txtStatus').innerText = "VITA: IGNICIÓN (" + Math.round(p*100) + "%)";
-                    isoLFO.frequency.setTargetAtTime(1.5 + (p * 18.5), audioCtx.currentTime, 2);
-                    if (ambientFilter) ambientFilter.frequency.setTargetAtTime(300 + (p * 4000), audioCtx.currentTime, 2);
+                    document.getElementById('txtStatus').innerText = "LA HISTORIA: EL AMANECER (" + Math.round(p*100) + "%)";
+                    isoModulator.frequency.setTargetAtTime(1.5 + (p * 18.5), audioCtx.currentTime, 5);
+                    chords.forEach(p => p.filter.frequency.setTargetAtTime(150 + (p * 4000), audioCtx.currentTime, 5));
                 }
 
-                const d = new Date(diff * 1000);
-                document.getElementById('txtClock').innerText = d.toISOString().substr(11, 8);
+                const s = Math.floor(diff % 60).toString().padStart(2, '0');
+                const min = Math.floor((diff / 60) % 60).toString().padStart(2, '0');
+                const hr = Math.floor(diff / 3600).toString().padStart(2, '0');
+                document.getElementById('txtClock').innerText = `${hr}:${min}:${s}`;
+                
                 requestAnimationFrame(update);
             }
             update();
         };
 
-        document.body.onclick = (e) => {
-            if (document.getElementById('active').style.display === 'block' && e.target.tagName !== 'BUTTON') {
+        document.body.onclick = () => {
+            if (document.getElementById('active').style.display === 'block') {
                 document.getElementById('mainUI').classList.toggle('blackout');
             }
         };
     </script>
 </body>
 </html>
-
