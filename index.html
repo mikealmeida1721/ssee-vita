@@ -1,16 +1,150 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Functionality</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SSEE VITA | Arquitecto de Sueño</title>
+    <style>
+        :root { --glow: #00ffcc; --bg: #000000; }
+        body { background: var(--bg); color: var(--glow); font-family: 'Segoe UI', sans-serif; height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .ui-layer { text-align: center; transition: opacity 1s; }
+        h1 { font-weight: 200; letter-spacing: 5px; font-size: 0.9rem; margin-bottom: 20px; opacity: 0.6; }
+        input[type="time"] { background: transparent; border: 1px solid #333; color: var(--glow); font-size: 3rem; padding: 10px; border-radius: 15px; text-align: center; outline: none; margin-bottom: 20px; }
+        .timer { font-size: 4.5rem; font-family: 'Courier New', monospace; margin: 20px 0; }
+        button { background: var(--glow); color: #000; border: none; padding: 20px 60px; font-size: 1rem; font-weight: bold; border-radius: 50px; cursor: pointer; text-transform: uppercase; }
+        .status { font-size: 0.7rem; letter-spacing: 2px; opacity: 0.5; margin-bottom: 10px; }
+        .blackout { opacity: 0 !important; pointer-events: none; }
+        #debug { position: fixed; bottom: 10px; font-size: 0.6rem; opacity: 0.3; }
+    </style>
 </head>
 <body>
-    <h1>Audio Test</h1>
-    <audio controls>
-        <source src="audio-file.mp3" type="audio/mpeg">
-        Your browser does not support the audio tag.
-    </audio>
-    <p>Please check your audio functionality.</p>
+
+    <div class="ui-layer" id="mainUI">
+        <h1>SSEE PROTOCOL: VITA-ALPHA</h1>
+        <div id="setup">
+            <input type="time" id="wakeTime" value="05:15">
+            <br>
+            <button id="btnStart">ACTIVAR CICLO</button>
+        </div>
+        <div id="active" style="display:none;">
+            <div class="status" id="txtStatus">INICIALIZANDO...</div>
+            <div class="timer" id="txtClock">00:00:00</div>
+            <p style="font-size: 0.7rem;">Toca la pantalla para oscurecer</p>
+        </div>
+    </div>
+
+    <div id="debug">SSEE_CORE_READY</div>
+
+    <script>
+        let audioCtx, masterGain, wakeLock = null;
+        let rainNode, oscL, oscR;
+
+        // Forzar WakeLock para que no se apague el proceso
+        async function initWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log("WakeLock Activo");
+                }
+            } catch (e) { document.getElementById('debug').innerText = "W-LOCK_ERR: USE_HTTPS"; }
+        }
+
+        function createNoise(type) {
+            const bufferSize = 2 * audioCtx.sampleRate,
+                  buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate),
+                  output = buffer.getChannelData(0);
+            let lastOut = 0.0;
+            for (let i = 0; i < bufferSize; i++) {
+                let white = Math.random() * 2 - 1;
+                output[i] = (lastOut + (0.02 * white)) / 1.02; // Brown Noise
+                lastOut = output[i];
+                output[i] *= 3.5;
+            }
+            const node = audioCtx.createBufferSource();
+            node.buffer = buffer;
+            node.loop = true;
+            return node;
+        }
+
+        document.getElementById('btnStart').onclick = async function() {
+            // Inicializar Audio en contexto de usuario (Requisito de Navegador)
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
+            
+            await initWakeLock();
+
+            const [h, m] = document.getElementById('wakeTime').value.split(':');
+            let wakeDate = new Date();
+            wakeDate.setHours(h, m, 0, 0);
+            if (wakeDate <= new Date()) wakeDate.setDate(wakeDate.getDate() + 1);
+
+            document.getElementById('setup').style.display = 'none';
+            document.getElementById('active').style.display = 'block';
+
+            // Configuración de Audio
+            masterGain = audioCtx.createGain();
+            masterGain.connect(audioCtx.destination);
+            
+            const rain = createNoise();
+            const rainFilter = audioCtx.createBiquadFilter();
+            const rainGain = audioCtx.createGain();
+            rainFilter.type = "lowpass";
+            rain.connect(rainFilter);
+            rainFilter.connect(rainGain);
+            rainGain.connect(masterGain);
+            rain.start();
+
+            oscL = audioCtx.createOscillator();
+            oscR = audioCtx.createOscillator();
+            const merger = audioCtx.createChannelMerger(2);
+            oscL.connect(merger, 0, 0);
+            oscR.connect(merger, 0, 1);
+            merger.connect(masterGain);
+            oscL.start();
+            oscR.start();
+
+            function update() {
+                const now = new Date();
+                const diff = (wakeDate - now) / 1000;
+
+                if (diff <= 0) {
+                    document.getElementById('txtStatus').innerText = "VIGILIA TOTAL";
+                    oscL.frequency.setTargetAtTime(852, audioCtx.currentTime, 1);
+                    oscR.frequency.setTargetAtTime(872, audioCtx.currentTime, 1);
+                    return;
+                }
+
+                if (diff > 3600) { // FASE SUEÑO PROFUNDO
+                    document.getElementById('txtStatus').innerText = "ESTADO: SSEE_REPARACIÓN";
+                    oscL.frequency.setTargetAtTime(174, audioCtx.currentTime, 2);
+                    oscR.frequency.setTargetAtTime(175.5, audioCtx.currentTime, 2); // $1.5$ Hz Delta
+                    rainGain.gain.setTargetAtTime(0.3, audioCtx.currentTime, 2);
+                    rainFilter.frequency.setTargetAtTime(400, audioCtx.currentTime, 2);
+                } else { // FASE RAMPA DE DESPERTAR
+                    const p = 1 - (diff / 3600);
+                    document.getElementById('txtStatus').innerText = "ESTADO: VITA_IGNITION (" + Math.round(p*100) + "%)";
+                    oscL.frequency.setTargetAtTime(174 + (p * 300), audioCtx.currentTime, 2);
+                    oscR.frequency.setTargetAtTime(oscL.frequency.value + (1.5 + (p * 15)), audioCtx.currentTime, 2);
+                    rainGain.gain.setTargetAtTime(0.3 * (1 - p), audioCtx.currentTime, 2);
+                    rainFilter.frequency.setTargetAtTime(400 + (p * 4000), audioCtx.currentTime, 2);
+                }
+
+                const s = Math.floor(diff % 60).toString().padStart(2, '0');
+                const min = Math.floor((diff / 60) % 60).toString().padStart(2, '0');
+                const hr = Math.floor(diff / 3600).toString().padStart(2, '0');
+                document.getElementById('txtClock').innerText = `${hr}:${min}:${s}`;
+                
+                requestAnimationFrame(update);
+            }
+            update();
+        };
+
+        // Modo Blackout al tocar
+        document.body.onclick = () => {
+            if (document.getElementById('active').style.display === 'block') {
+                document.getElementById('mainUI').classList.toggle('blackout');
+            }
+        };
+    </script>
 </body>
 </html>
