@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SSEE VITA CORE</title>
+    <title>SSEE VITA | Armonía Profunda</title>
     <style>
         :root { --glow: #00ffcc; --bg: #000; }
-        body { background: var(--bg); color: var(--glow); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; -webkit-tap-highlight-color: transparent; }
-        .ui { text-align: center; transition: opacity 0.8s; width: 100%; }
-        h1 { font-weight: 200; letter-spacing: 4px; font-size: 0.8rem; margin-bottom: 30px; opacity: 0.5; }
-        input[type="time"] { background: #111; border: 1px solid #333; color: var(--glow); font-size: 3.5rem; padding: 10px 20px; border-radius: 20px; text-align: center; outline: none; margin-bottom: 30px; -webkit-appearance: none; }
+        body { background: var(--bg); color: var(--glow); font-family: 'Segoe UI', sans-serif; height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; -webkit-tap-highlight-color: transparent; }
+        .ui { text-align: center; transition: opacity 1s; width: 100%; }
+        h1 { font-weight: 200; letter-spacing: 6px; font-size: 0.9rem; margin-bottom: 30px; opacity: 0.7; color: var(--glow); }
+        input[type="time"] { background: #0a0a0a; border: 1px solid #222; color: var(--glow); font-size: 3.5rem; padding: 10px; border-radius: 20px; text-align: center; outline: none; margin-bottom: 30px; }
         .timer { font-size: 4rem; font-family: 'Courier New', monospace; font-weight: bold; margin: 20px 0; }
-        button { background: var(--glow); color: #000; border: none; padding: 20px 50px; font-size: 1.1rem; font-weight: 800; border-radius: 50px; cursor: pointer; box-shadow: 0 10px 20px rgba(0,255,204,0.2); }
-        .status { font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; color: #666; }
+        button { background: var(--glow); color: #000; border: none; padding: 20px 60px; font-size: 1.1rem; font-weight: 800; border-radius: 50px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; }
+        .status { font-size: 0.7rem; letter-spacing: 2px; margin-bottom: 10px; color: #444; }
         .blackout { opacity: 0 !important; }
-        #info { position: fixed; bottom: 20px; font-size: 0.6rem; opacity: 0.3; }
     </style>
 </head>
 <body>
@@ -22,81 +21,88 @@
     <audio id="silentAudio" loop><source src="data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" type="audio/wav"></audio>
 
     <div class="ui" id="mainUI">
-        <h1>SSEE PROTOCOL V5</h1>
+        <h1>SSEE ARMONÍA VITA</h1>
         <div id="setup">
             <input type="time" id="wakeTime" value="05:15">
             <br>
-            <button id="btnStart">ACTIVAR PROTOCOLO</button>
+            <button id="btnStart">INICIAR VIAJE</button>
         </div>
         <div id="active" style="display:none;">
-            <div class="status" id="txtStatus">ESTABILIZANDO...</div>
+            <div class="status" id="txtStatus">GENERANDO AMBIENTE...</div>
             <div class="timer" id="txtClock">00:00:00</div>
-            <p style="font-size: 0.7rem; opacity: 0.4;">Toca para modo oscuro total</p>
+            <p style="font-size: 0.7rem; opacity: 0.3;">Toca para oscuridad total</p>
         </div>
     </div>
 
-    <div id="info">BIO-ARQUITECTURA SSEE | MIKÆL-V</div>
-
     <script>
-        let audioCtx, masterGain, rainGain, rainFilter, oscL, oscR;
-        let wakeLock = null;
+        let audioCtx, masterGain, rainGain, rainFilter, pads = [], wakeLock = null;
 
-        // Configuración de Identidad para el Lock Screen del iPhone
-        function setupMediaSession() {
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.metadata = new MediaMetadata({
-                    title: 'SSEE VITA: Bio-Despertador',
-                    artist: 'MÏŒSLÅNKH',
-                    album: 'Arquitectura del Sueño',
-                    artwork: [{ src: 'https://via.placeholder.com/512/00ffcc/000000?text=VITA', sizes: '512x512', type: 'image/png' }]
-                });
-            }
-        }
-
-        async function activateWakeLock() {
+        async function initWakeLock() {
             try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
         }
 
+        // LLUVIA 2.0: Ruido Rosa con movimiento (LFO)
         function createRain() {
             const bufferSize = 2 * audioCtx.sampleRate;
             const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const output = buffer.getChannelData(0);
-            let lastOut = 0.0;
+            let b0, b1, b2, b3, b4, b5, b6;
+            b0 = b1 = b2 = b3 = b4 = b5 = b6 = 0.0;
+            
             for (let i = 0; i < bufferSize; i++) {
                 let white = Math.random() * 2 - 1;
-                output[i] = (lastOut + (0.02 * white)) / 1.02; // Brown Noise
-                lastOut = output[i];
-                output[i] *= 3.5;
+                b0 = 0.99886 * b0 + white * 0.0555179;
+                b1 = 0.99332 * b1 + white * 0.0750759;
+                b2 = 0.96900 * b2 + white * 0.1538520;
+                b3 = 0.86650 * b3 + white * 0.3104856;
+                b4 = 0.55000 * b4 + white * 0.5329522;
+                b5 = -0.7616 * b5 - white * 0.0168980;
+                output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+                output[i] *= 0.11; // Corrección de volumen para Pink Noise
+                b6 = white * 0.115926;
             }
-            const source = audioCtx.createBufferSource();
-            source.buffer = buffer;
-            source.loop = true;
-            return source;
+            const node = audioCtx.createBufferSource();
+            node.buffer = buffer;
+            node.loop = true;
+            return node;
         }
 
-        function birdChirp(time) {
+        // PAD ARMÓNICO: Crea una textura tipo sintetizador
+        function createPad(freq, type = 'triangle') {
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            const f = audioCtx.createBiquadFilter();
+            
+            osc.type = type;
+            osc.frequency.value = freq;
+            f.type = "lowpass";
+            f.frequency.value = 400; // Sonido cálido/muffled
+
+            osc.connect(f);
+            f.connect(g);
+            g.connect(masterGain);
+            osc.start();
+            return { osc, gain: g, filter: f };
+        }
+
+        function bird(time) {
             const o = audioCtx.createOscillator();
             const g = audioCtx.createGain();
-            o.frequency.setValueAtTime(2000 + Math.random() * 3000, time);
-            o.frequency.exponentialRampToValueAtTime(1000 + Math.random() * 1000, time + 0.1);
+            o.type = 'sine';
+            o.frequency.setValueAtTime(2500 + Math.random()*1000, time);
+            o.frequency.exponentialRampToValueAtTime(1200, time + 0.1);
             g.gain.setValueAtTime(0, time);
-            g.gain.linearRampToValueAtTime(0.05, time + 0.02);
+            g.gain.linearRampToValueAtTime(0.03, time + 0.02);
             g.gain.linearRampToValueAtTime(0, time + 0.1);
             o.connect(g); g.connect(masterGain);
             o.start(time); o.stop(time + 0.1);
         }
 
         document.getElementById('btnStart').onclick = async function() {
-            // Inicialización obligatoria por gesto
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') await audioCtx.resume();
-            
-            // Iniciar audio fantasma para mantener vivo el proceso
-            const silent = document.getElementById('silentAudio');
-            silent.play();
-
-            await activateWakeLock();
-            setupMediaSession();
+            document.getElementById('silentAudio').play();
+            await initWakeLock();
 
             const [h, m] = document.getElementById('wakeTime').value.split(':');
             let wakeDate = new Date();
@@ -107,11 +113,11 @@
             document.getElementById('active').style.display = 'block';
 
             masterGain = audioCtx.createGain();
-            masterGain.gain.setValueAtTime(0.001, audioCtx.currentTime);
-            masterGain.gain.exponentialRampToValueAtTime(0.7, audioCtx.currentTime + 3);
+            masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            masterGain.gain.linearRampToValueAtTime(0.6, audioCtx.currentTime + 5);
             masterGain.connect(audioCtx.destination);
 
-            // Capa 1: Lluvia
+            // Crear Lluvia y viento (LFO)
             const rain = createRain();
             rainFilter = audioCtx.createBiquadFilter();
             rainGain = audioCtx.createGain();
@@ -119,39 +125,52 @@
             rain.connect(rainFilter); rainFilter.connect(rainGain); rainGain.connect(masterGain);
             rain.start();
 
-            // Capa 2: Binaural
-            oscL = audioCtx.createOscillator();
-            oscR = audioCtx.createOscillator();
-            const merger = audioCtx.createChannelMerger(2);
-            oscL.connect(merger, 0, 0); oscR.connect(merger, 0, 1);
-            merger.connect(masterGain);
-            oscL.start(); oscR.start();
+            // Crear Armonías (Acorde de Do Maj / Frecuencia Solfeggio 528Hz base)
+            pads.push(createPad(174, 'triangle')); // Raíz
+            pads.push(createPad(174 * 1.5, 'sine')); // Quinta (Armonía)
+            pads.push(createPad(174 * 1.25, 'sine')); // Tercera (Dulce)
+            
+            // Oscilador Binaural para el otro oído
+            const binauralOsc = createPad(175.5, 'sine'); // Crea el pulso de 1.5Hz (Delta)
+            pads.push(binauralOsc);
 
             function loop() {
-                const diff = (wakeDate - new Date()) / 1000;
+                const now = new Date();
+                const diff = (wakeDate - now) / 1000;
+
                 if (diff <= 0) {
                     document.getElementById('txtStatus').innerText = "VIGILIA TOTAL";
                     return;
                 }
 
-                if (diff > 3600) { // SUEÑO
-                    document.getElementById('txtStatus').innerText = "SSEE: REPARACIÓN (DELTA + LLUVIA)";
-                    oscL.frequency.setTargetAtTime(174, audioCtx.currentTime, 2);
-                    oscR.frequency.setTargetAtTime(175.5, audioCtx.currentTime, 2); 
-                    rainGain.gain.setTargetAtTime(0.25, audioCtx.currentTime, 2);
-                    rainFilter.frequency.setTargetAtTime(500, audioCtx.currentTime, 2);
-                } else { // RAMPA DESPERTAR
+                if (diff > 3600) { // FASE SUEÑO
+                    document.getElementById('txtStatus').innerText = "SSEE: REPARACIÓN ARMÓNICA";
+                    rainGain.gain.setTargetAtTime(0.3, audioCtx.currentTime, 2);
+                    rainFilter.frequency.setTargetAtTime(450, audioCtx.currentTime, 2);
+                    pads.forEach(p => p.filter.frequency.setTargetAtTime(300, audioCtx.currentTime, 2));
+                } else { // FASE DESPERTAR
                     const p = 1 - (diff / 3600);
-                    document.getElementById('txtStatus').innerText = "SSEE: VITA ASCENDENTE (" + Math.round(p*100) + "%)";
-                    oscL.frequency.setTargetAtTime(174 + (p * 400), audioCtx.currentTime, 2);
-                    oscR.frequency.setTargetAtTime(oscL.frequency.value + (1.5 + (p * 18)), audioCtx.currentTime, 2);
-                    rainGain.gain.setTargetAtTime(0.25 * (1 - p), audioCtx.currentTime, 2);
-                    rainFilter.frequency.setTargetAtTime(500 + (p * 5000), audioCtx.currentTime, 2);
-                    if (p > 0.6 && Math.random() > 0.985) birdChirp(audioCtx.currentTime);
+                    document.getElementById('txtStatus').innerText = "VITA: AMANECER (" + Math.round(p*100) + "%)";
+                    
+                    // Abrir filtros (dar brillo)
+                    rainFilter.frequency.setTargetAtTime(450 + (p * 5000), audioCtx.currentTime, 2);
+                    pads.forEach(pad => {
+                        pad.filter.frequency.setTargetAtTime(300 + (p * 4000), audioCtx.currentTime, 2);
+                        // Subir frecuencia gradualmente hacia Alpha/Beta
+                        pad.osc.frequency.setTargetAtTime(pad.osc.frequency.value + (p * 0.1), audioCtx.currentTime, 2);
+                    });
+                    
+                    // El pulso binaural sube a 15Hz (Alerta)
+                    binauralOsc.osc.frequency.setTargetAtTime(pads[0].osc.frequency.value + (1.5 + (p * 13.5)), audioCtx.currentTime, 2);
+                    
+                    if (p > 0.7 && Math.random() > 0.98) bird(audioCtx.currentTime);
                 }
 
-                const d = new Date(diff * 1000);
-                document.getElementById('txtClock').innerText = d.toISOString().substr(11, 8);
+                const s = Math.floor(diff % 60).toString().padStart(2, '0');
+                const min = Math.floor((diff / 60) % 60).toString().padStart(2, '0');
+                const hr = Math.floor(diff / 3600).toString().padStart(2, '0');
+                document.getElementById('txtClock').innerText = `${hr}:${min}:${s}`;
+                
                 requestAnimationFrame(loop);
             }
             loop();
