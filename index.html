@@ -7,17 +7,17 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="SSEE VITA">
-<meta name="theme-color" content="#05060e">
+<meta name="theme-color" content="#000000">
 <!-- PWA manifest inline para instalación -->
 <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22SSEE+VITA%22%2C%22short_name%22%3A%22SSEE+VITA%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%2305060e%22%2C%22theme_color%22%3A%22%2305060e%22%7D">
 <title>SSEE VITA — Alarma de Sueño Natural</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Outfit:wght@100;200;300;400&display=swap');
-:root{--bg:#05060e;--v:#7c6ee0;--t:#00d4aa;--sf:rgba(255,255,255,0.03);--bd:rgba(255,255,255,0.07);--tx:rgba(255,255,255,0.7);--dm:rgba(255,255,255,0.22);}
+:root{--bg:#000000;--v:#7c6ee0;--t:#00d4aa;--sf:rgba(255,255,255,0.03);--bd:rgba(255,255,255,0.07);--tx:rgba(255,255,255,0.7);--dm:rgba(255,255,255,0.22);}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100dvh;overflow:hidden;background:var(--bg);color:var(--tx);font-family:'Outfit',sans-serif;font-weight:300;}
-body::before{content:'';position:fixed;top:-25%;left:-15%;width:65%;height:65%;background:radial-gradient(ellipse,rgba(124,110,224,0.05) 0%,transparent 70%);animation:ga 22s ease-in-out infinite alternate;pointer-events:none;z-index:0;}
-body::after{content:'';position:fixed;bottom:-18%;right:-8%;width:55%;height:55%;background:radial-gradient(ellipse,rgba(0,212,170,0.035) 0%,transparent 70%);animation:gb 28s ease-in-out infinite alternate;pointer-events:none;z-index:0;}
+body::before{content:'';position:fixed;top:-25%;left:-15%;width:65%;height:65%;background:radial-gradient(ellipse,rgba(124,110,224,0.03) 0%,transparent 70%);animation:ga 22s ease-in-out infinite alternate;pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;bottom:-18%;right:-8%;width:55%;height:55%;background:radial-gradient(ellipse,rgba(0,212,170,0.02) 0%,transparent 70%);animation:gb 28s ease-in-out infinite alternate;pointer-events:none;z-index:0;}
 @keyframes ga{to{transform:translate(4%,6%);}}@keyframes gb{to{transform:translate(-5%,-4%);}}
 .screen{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:22px 18px;transition:opacity .9s ease,transform .9s ease;}
 .screen.hidden{opacity:0;pointer-events:none;transform:translateY(14px);}
@@ -65,7 +65,7 @@ input[type="time"]:focus{border-color:var(--v);box-shadow:0 0 16px rgba(124,110,
 .bg-status{font-size:.35rem;letter-spacing:1.5px;color:rgba(0,212,170,.4);margin-top:8px;text-transform:uppercase;}
 .th{font-size:.33rem;letter-spacing:2px;color:rgba(255,255,255,.09);margin-top:5px;text-transform:uppercase;}
 /* WAKE */
-#sW{background:linear-gradient(180deg,#05060e,#07091a);}
+#sW{background:#000000;}
 .worb{width:90px;height:90px;margin:0 auto 20px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,170,.2),rgba(124,110,224,.08),transparent 70%);animation:wo 4s ease-in-out infinite;display:flex;align-items:center;justify-content:center;font-size:1.9rem;}
 @keyframes wo{0%,100%{box-shadow:0 0 25px rgba(0,212,170,.12);}50%{box-shadow:0 0 45px rgba(0,212,170,.24);}}
 .wt{font-size:1.25rem;font-weight:100;background:linear-gradient(135deg,var(--t),var(--v));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;margin-bottom:7px;}
@@ -111,7 +111,10 @@ body.bo #sA{opacity:0;}
      Usamos un tono sinusoidal de 20Hz (inaudible para humanos)
      generado como WAV en base64 — mantendrá el proceso activo. -->
 
-<audio id="iosAnchor" loop playsinline preload="auto" style="display:none"></audio>
+<!-- Tu propia música Sleep de Mureka — el audio real mantiene iOS vivo con pantalla bloqueada -->
+
+<audio id="iosAnchor" src="sleep_anchor.mp3" loop playsinline preload="auto" 
+x-webkit-airplay="deny" style="display:none"></audio>
 
 <!-- SETUP -->
 
@@ -135,9 +138,9 @@ body.bo #sA{opacity:0;}
 
 <!-- Instrucción para instalar como PWA en iOS -->
 <div class="ios-tip" id="iosTip">
-  📱 <strong>Para pantalla bloqueada:</strong> En Safari, toca
-  <strong>Compartir → Agregar a pantalla de inicio</strong>.
-  Luego abre la app instalada. Esto permite que el audio continúe con la pantalla apagada.
+  🎵 <strong>Sleep por MÏŒSLÅNKH</strong> se reproduce como anchor.<br>
+  Para pantalla apagada: Safari → <strong>Compartir → Agregar a pantalla de inicio</strong>.
+  El audio continúa en background desde el homescreen.
 </div>
 
 <button class="go-btn" id="startBtn">Iniciar sesión de sueño</button>
@@ -252,50 +255,13 @@ if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)
 //  con la pantalla bloqueada.
 //  [ref: soledad penadés 2024 — AudioElement vs Web Audio en iOS]
 // ═══════════════════════════════════════════════════════════════
-function generate20HzWAV() {
-  // Generar 2 segundos de tono 20Hz a 44100Hz
-  const sampleRate = 22050;
-  const duration   = 2;
-  const numSamples = sampleRate * duration;
-  const freq       = 20; // Hz — infrasonido, inaudible
-
-  // WAV header (44 bytes) + data
-  const buffer = new ArrayBuffer(44 + numSamples * 2);
-  const view   = new DataView(buffer);
-
-  // RIFF chunk
-  const writeStr = (offset, str) => {
-    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
-  };
-  writeStr(0, 'RIFF');
-  view.setUint32(4, 36 + numSamples * 2, true);
-  writeStr(8, 'WAVE');
-  writeStr(12, 'fmt ');
-  view.setUint32(16, 16, true);   // chunk size
-  view.setUint16(20, 1, true);    // PCM
-  view.setUint16(22, 1, true);    // mono
-  view.setUint32(24, sampleRate, true);
-  view.setUint32(28, sampleRate * 2, true);
-  view.setUint16(32, 2, true);    // block align
-  view.setUint16(34, 16, true);   // bits per sample
-  writeStr(36, 'data');
-  view.setUint32(40, numSamples * 2, true);
-
-  // Samples: tono sinusoidal a 20Hz, amplitud MUY baja (0.001)
-  for (let i = 0; i < numSamples; i++) {
-    const sample = Math.sin(2 * PI * freq * i / sampleRate) * 0.001;
-    view.setInt16(44 + i * 2, sample * 32767, true);
-  }
-
-  const blob = new Blob([buffer], { type: 'audio/wav' });
-  return URL.createObjectURL(blob);
-}
+// Audio anchor: sleep_anchor.mp3 (Sleep por MÏŒSLÅNKH / Mureka)
 
 function setupIOSAnchor() {
-  const audioEl = document.getElementById('iosAnchor');
-  audioEl.src   = generate20HzWAV();
-  audioEl.loop  = true;
-  return audioEl;
+  // El MP3 real (tu track Sleep de Mureka) está cargado directamente en el <audio>.
+  // Un archivo de audio real pre-cargado sí sobrevive con pantalla bloqueada en iOS,
+  // a diferencia de un WAV generado por JS. [ref: soledad penadés 2024]
+  return document.getElementById('iosAnchor');
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -309,9 +275,9 @@ function setupMediaSession() {
   if (!('mediaSession' in navigator)) return;
 
   navigator.mediaSession.metadata = new MediaMetadata({
-    title:  'SSEE VITA — Sueño Activo',
-    artist: 'Sistema de Sincronía · Φ + π',
-    album:  'Sesión de Sueño',
+    title:  'Sleep — MÏŒSLÅNKH',
+    artist: 'SSEE VITA · Φ + π',
+    album:  'Sleep · Mureka AI',
     // Artwork generado en canvas para evitar el problema de tamaño
     // [ref: dbushell.com 2023 — canvas toBlob para iOS 16.4+]
     artwork: [{ src: generateArtwork(512), sizes: '512x512', type: 'image/png' }]
@@ -338,8 +304,8 @@ function generateArtwork(size) {
 
   // Fondo
   const grad = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
-  grad.addColorStop(0, '#0a0c20');
-  grad.addColorStop(1, '#05060e');
+  grad.addColorStop(0, '#000000');
+  grad.addColorStop(1, '#000000');
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, size, size);
 
@@ -381,7 +347,7 @@ function setupVisibilityHandler() {
     if (document.visibilityState === 'visible' && AC) {
       if (AC.state === 'suspended') {
         AC.resume().then(() => {
-          updateBgStatus('🎵 Audio activo');
+          updateBgStatus('🎵 Sleep activo · pantalla se puede apagar');
           if ('mediaSession' in navigator) {
             navigator.mediaSession.playbackState = 'playing';
           }
@@ -746,7 +712,7 @@ document.getElementById('startBtn').addEventListener('click', async () => {
   goTo('sA');
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
-  updateBgStatus('🎵 Audio activo');
+  updateBgStatus('🎵 Sleep activo · pantalla se puede apagar');
   engine();
 });
 
