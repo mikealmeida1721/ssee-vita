@@ -16,29 +16,28 @@
 :root{--bg:#000000;--v:#7c6ee0;--t:#00d4aa;--sf:rgba(255,255,255,0.03);--bd:rgba(255,255,255,0.07);--tx:rgba(255,255,255,0.7);--dm:rgba(255,255,255,0.22);}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100dvh;overflow:hidden;background:var(--bg);color:var(--tx);font-family:'Outfit',sans-serif;font-weight:300;}
-body::before{content:'';position:fixed;top:-25%;left:-15%;width:65%;height:65%;background:radial-gradient(ellipse,rgba(124,110,224,0.03) 0%,transparent 70%);animation:ga 22s ease-in-out infinite alternate;pointer-events:none;z-index:0;}
-body::after{content:'';position:fixed;bottom:-18%;right:-8%;width:55%;height:55%;background:radial-gradient(ellipse,rgba(0,212,170,0.02) 0%,transparent 70%);animation:gb 28s ease-in-out infinite alternate;pointer-events:none;z-index:0;}
+
 @keyframes ga{to{transform:translate(4%,6%);}}@keyframes gb{to{transform:translate(-5%,-4%);}}
 .screen{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:22px 18px;transition:opacity .9s ease,transform .9s ease;}
 .screen.hidden{opacity:0;pointer-events:none;transform:translateY(14px);}
 /* SETUP */
 .card{width:100%;max-width:345px;text-align:center;}
-.logo{font-family:'Share Tech Mono',monospace;font-size:.5rem;letter-spacing:5px;color:var(--v);opacity:.5;text-transform:uppercase;margin-bottom:5px;}
-.title{font-size:1.4rem;font-weight:100;background:linear-gradient(135deg,var(--v),var(--t));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;margin-bottom:4px;}
-.subtitle{font-size:.42rem;letter-spacing:3px;color:var(--dm);text-transform:uppercase;margin-bottom:30px;}
-.field-lbl{font-size:.42rem;letter-spacing:3px;color:var(--dm);text-transform:uppercase;margin-bottom:8px;text-align:left;}
-input[type="time"]{background:var(--sf);border:1px solid var(--bd);border-radius:13px;color:#fff;font-family:'Share Tech Mono',monospace;font-size:2.5rem;padding:14px 18px;text-align:center;width:100%;outline:none;-webkit-appearance:none;margin-bottom:22px;transition:border-color .3s,box-shadow .3s;}
-input[type="time"]:focus{border-color:var(--v);box-shadow:0 0 16px rgba(124,110,224,.12);}
+.logo{font-family:‘Share Tech Mono’,monospace;font-size:.5rem;letter-spacing:5px;color:var(–v);opacity:.5;text-transform:uppercase;margin-bottom:5px;}
+.title{font-size:1.4rem;font-weight:100;background:linear-gradient(135deg,var(–v),var(–t));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;margin-bottom:4px;}
+.subtitle{font-size:.42rem;letter-spacing:3px;color:var(–dm);text-transform:uppercase;margin-bottom:30px;}
+.field-lbl{font-size:.42rem;letter-spacing:3px;color:var(–dm);text-transform:uppercase;margin-bottom:8px;text-align:left;}
+input[type=“time”]{background:var(–sf);border:1px solid var(–bd);border-radius:13px;color:#fff;font-family:‘Share Tech Mono’,monospace;font-size:2.5rem;padding:14px 18px;text-align:center;width:100%;outline:none;-webkit-appearance:none;margin-bottom:22px;transition:border-color .3s,box-shadow .3s;}
+input[type=“time”]:focus{border-color:var(–v);box-shadow:0 0 16px rgba(124,110,224,.12);}
 .sound-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:16px;}
-.snd{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:11px 7px;cursor:pointer;text-align:center;transition:all .2s;color:var(--dm);user-select:none;}
+.snd{background:var(–sf);border:1px solid var(–bd);border-radius:10px;padding:11px 7px;cursor:pointer;text-align:center;transition:all .2s;color:var(–dm);user-select:none;}
 .snd .ic{font-size:1.3rem;display:block;margin-bottom:4px;}
 .snd .nm{font-size:.5rem;letter-spacing:1px;text-transform:uppercase;}
-.snd .ds{font-size:.36rem;color:var(--dm);margin-top:2px;opacity:.65;}
-.snd.on{border-color:var(--t);color:var(--t);background:rgba(0,212,170,.05);}
+.snd .ds{font-size:.36rem;color:var(–dm);margin-top:2px;opacity:.65;}
+.snd.on{border-color:var(–t);color:var(–t);background:rgba(0,212,170,.05);}
 /* iOS install tip */
 .ios-tip{background:rgba(0,212,170,.05);border:1px solid rgba(0,212,170,.15);border-radius:10px;padding:10px 12px;margin-bottom:16px;font-size:.44rem;color:rgba(0,212,170,.6);line-height:1.55;letter-spacing:.5px;}
 .ios-tip strong{color:rgba(0,212,170,.85);}
-.go-btn{width:100%;padding:16px;border:none;border-radius:50px;background:linear-gradient(135deg,var(--v),#5048c4);color:#fff;font-family:'Outfit',sans-serif;font-size:.75rem;font-weight:400;letter-spacing:3px;text-transform:uppercase;cursor:pointer;box-shadow:0 8px 24px rgba(124,110,224,.2);transition:all .3s;}
+.go-btn{width:100%;padding:16px;border:none;border-radius:50px;background:linear-gradient(135deg,var(–v),#5048c4);color:#fff;font-family:‘Outfit’,sans-serif;font-size:.75rem;font-weight:400;letter-spacing:3px;text-transform:uppercase;cursor:pointer;box-shadow:0 8px 24px rgba(124,110,224,.2);transition:all .3s;}
 .go-btn:active{transform:scale(.98);}
 /* ACTIVE */
 .wrap{width:100%;max-width:370px;text-align:center;}
@@ -47,18 +46,18 @@ input[type="time"]:focus{border-color:var(--v);box-shadow:0 0 16px rgba(124,110,
 .rt{fill:none;stroke:rgba(255,255,255,.035);stroke-width:4;}
 .ra{fill:none;stroke-width:4;stroke-linecap:round;stroke-dasharray:521;stroke-dashoffset:521;transition:stroke-dashoffset 2s ease,stroke 1.5s ease;}
 .ri{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-.rtime{font-family:'Share Tech Mono',monospace;font-size:1.7rem;color:#fff;text-shadow:0 0 16px rgba(124,110,224,.3);}
-.rcyc{font-size:.37rem;letter-spacing:2px;color:var(--dm);margin-top:4px;}
-.pc{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:11px 15px;margin-bottom:11px;}
-.pn{font-family:'Share Tech Mono',monospace;font-size:.65rem;letter-spacing:2px;margin-bottom:5px;transition:color 2s;}
-.pd{font-size:.38rem;color:var(--dm);margin-bottom:7px;letter-spacing:.8px;}
+.rtime{font-family:‘Share Tech Mono’,monospace;font-size:1.7rem;color:#fff;text-shadow:0 0 16px rgba(124,110,224,.3);}
+.rcyc{font-size:.37rem;letter-spacing:2px;color:var(–dm);margin-top:4px;}
+.pc{background:var(–sf);border:1px solid var(–bd);border-radius:12px;padding:11px 15px;margin-bottom:11px;}
+.pn{font-family:‘Share Tech Mono’,monospace;font-size:.65rem;letter-spacing:2px;margin-bottom:5px;transition:color 2s;}
+.pd{font-size:.38rem;color:var(–dm);margin-bottom:7px;letter-spacing:.8px;}
 .pt{background:rgba(255,255,255,.04);border-radius:3px;height:2px;overflow:hidden;}
-.pf{height:100%;border-radius:3px;width:0%;background:linear-gradient(90deg,var(--v),var(--t));transition:width 3s ease;}
+.pf{height:100%;border-radius:3px;width:0%;background:linear-gradient(90deg,var(–v),var(–t));transition:width 3s ease;}
 .st{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:11px;}
-.sb{background:var(--sf);border:1px solid var(--bd);border-radius:9px;padding:8px 5px;}
-.sv{font-family:'Share Tech Mono',monospace;font-size:.76rem;color:#fff;}
-.sv .u{font-size:.4rem;color:var(--dm);}
-.sk{font-size:.33rem;letter-spacing:2px;color:var(--dm);text-transform:uppercase;margin-top:2px;}
+.sb{background:var(–sf);border:1px solid var(–bd);border-radius:9px;padding:8px 5px;}
+.sv{font-family:‘Share Tech Mono’,monospace;font-size:.76rem;color:#fff;}
+.sv .u{font-size:.4rem;color:var(–dm);}
+.sk{font-size:.33rem;letter-spacing:2px;color:var(–dm);text-transform:uppercase;margin-top:2px;}
 #wc{width:100%;height:28px;border-radius:7px;margin-bottom:9px;opacity:.4;}
 .vb{background:rgba(124,110,224,.05);border:1px solid rgba(124,110,224,.12);border-radius:10px;padding:8px 12px;font-size:.56rem;color:rgba(255,255,255,.32);font-style:italic;min-height:28px;line-height:1.5;transition:all 1s;}
 /* Status de audio background */
@@ -68,12 +67,13 @@ input[type="time"]:focus{border-color:var(--v);box-shadow:0 0 16px rgba(124,110,
 #sW{background:#000000;}
 .worb{width:90px;height:90px;margin:0 auto 20px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,170,.2),rgba(124,110,224,.08),transparent 70%);animation:wo 4s ease-in-out infinite;display:flex;align-items:center;justify-content:center;font-size:1.9rem;}
 @keyframes wo{0%,100%{box-shadow:0 0 25px rgba(0,212,170,.12);}50%{box-shadow:0 0 45px rgba(0,212,170,.24);}}
-.wt{font-size:1.25rem;font-weight:100;background:linear-gradient(135deg,var(--t),var(--v));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;margin-bottom:7px;}
-.wm{font-size:.64rem;color:var(--dm);margin-bottom:24px;line-height:1.65;}
-.rbtn{background:transparent;border:1px solid var(--bd);border-radius:50px;color:var(--tx);padding:12px 26px;font-size:.62rem;letter-spacing:2px;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .3s;}
-.rbtn:hover{border-color:var(--t);color:var(--t);}
+.wt{font-size:1.25rem;font-weight:100;background:linear-gradient(135deg,var(–t),var(–v));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;margin-bottom:7px;}
+.wm{font-size:.64rem;color:var(–dm);margin-bottom:24px;line-height:1.65;}
+.rbtn{background:transparent;border:1px solid var(–bd);border-radius:50px;color:var(–tx);padding:12px 26px;font-size:.62rem;letter-spacing:2px;cursor:pointer;font-family:‘Outfit’,sans-serif;transition:all .3s;}
+.rbtn:hover{border-color:var(–t);color:var(–t);}
 body.bo #sA{opacity:0;}
 </style>
+
 </head>
 <body>
 
@@ -111,10 +111,7 @@ body.bo #sA{opacity:0;}
      Usamos un tono sinusoidal de 20Hz (inaudible para humanos)
      generado como WAV en base64 — mantendrá el proceso activo. -->
 
-<!-- Tu propia música Sleep de Mureka — el audio real mantiene iOS vivo con pantalla bloqueada -->
-
-<audio id="iosAnchor" src="sleep_anchor.mp3" loop playsinline preload="auto" 
-x-webkit-airplay="deny" style="display:none"></audio>
+<audio id="iosAnchor" loop playsinline preload="auto" style="display:none"></audio>
 
 <!-- SETUP -->
 
@@ -138,9 +135,9 @@ x-webkit-airplay="deny" style="display:none"></audio>
 
 <!-- Instrucción para instalar como PWA en iOS -->
 <div class="ios-tip" id="iosTip">
-  🎵 <strong>Sleep por MÏŒSLÅNKH</strong> se reproduce como anchor.<br>
-  Para pantalla apagada: Safari → <strong>Compartir → Agregar a pantalla de inicio</strong>.
-  El audio continúa en background desde el homescreen.
+  📱 <strong>Para pantalla bloqueada:</strong> En Safari, toca
+  <strong>Compartir → Agregar a pantalla de inicio</strong>.
+  Luego abre la app instalada. Esto permite que el audio continúe con la pantalla apagada.
 </div>
 
 <button class="go-btn" id="startBtn">Iniciar sesión de sueño</button>
@@ -255,13 +252,50 @@ if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)
 //  con la pantalla bloqueada.
 //  [ref: soledad penadés 2024 — AudioElement vs Web Audio en iOS]
 // ═══════════════════════════════════════════════════════════════
-// Audio anchor: sleep_anchor.mp3 (Sleep por MÏŒSLÅNKH / Mureka)
+function generate20HzWAV() {
+  // Generar 2 segundos de tono 20Hz a 44100Hz
+  const sampleRate = 22050;
+  const duration   = 2;
+  const numSamples = sampleRate * duration;
+  const freq       = 20; // Hz — infrasonido, inaudible
+
+  // WAV header (44 bytes) + data
+  const buffer = new ArrayBuffer(44 + numSamples * 2);
+  const view   = new DataView(buffer);
+
+  // RIFF chunk
+  const writeStr = (offset, str) => {
+    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+  };
+  writeStr(0, 'RIFF');
+  view.setUint32(4, 36 + numSamples * 2, true);
+  writeStr(8, 'WAVE');
+  writeStr(12, 'fmt ');
+  view.setUint32(16, 16, true);   // chunk size
+  view.setUint16(20, 1, true);    // PCM
+  view.setUint16(22, 1, true);    // mono
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);    // block align
+  view.setUint16(34, 16, true);   // bits per sample
+  writeStr(36, 'data');
+  view.setUint32(40, numSamples * 2, true);
+
+  // Samples: tono sinusoidal a 20Hz, amplitud MUY baja (0.001)
+  for (let i = 0; i < numSamples; i++) {
+    const sample = Math.sin(2 * PI * freq * i / sampleRate) * 0.001;
+    view.setInt16(44 + i * 2, sample * 32767, true);
+  }
+
+  const blob = new Blob([buffer], { type: 'audio/wav' });
+  return URL.createObjectURL(blob);
+}
 
 function setupIOSAnchor() {
-  // El MP3 real (tu track Sleep de Mureka) está cargado directamente en el <audio>.
-  // Un archivo de audio real pre-cargado sí sobrevive con pantalla bloqueada en iOS,
-  // a diferencia de un WAV generado por JS. [ref: soledad penadés 2024]
-  return document.getElementById('iosAnchor');
+  const audioEl = document.getElementById('iosAnchor');
+  audioEl.src   = generate20HzWAV();
+  audioEl.loop  = true;
+  return audioEl;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -275,9 +309,9 @@ function setupMediaSession() {
   if (!('mediaSession' in navigator)) return;
 
   navigator.mediaSession.metadata = new MediaMetadata({
-    title:  'Sleep — MÏŒSLÅNKH',
-    artist: 'SSEE VITA · Φ + π',
-    album:  'Sleep · Mureka AI',
+    title:  'SSEE VITA — Sueño Activo',
+    artist: 'Sistema de Sincronía · Φ + π',
+    album:  'Sesión de Sueño',
     // Artwork generado en canvas para evitar el problema de tamaño
     // [ref: dbushell.com 2023 — canvas toBlob para iOS 16.4+]
     artwork: [{ src: generateArtwork(512), sizes: '512x512', type: 'image/png' }]
@@ -347,7 +381,7 @@ function setupVisibilityHandler() {
     if (document.visibilityState === 'visible' && AC) {
       if (AC.state === 'suspended') {
         AC.resume().then(() => {
-          updateBgStatus('🎵 Sleep activo · pantalla se puede apagar');
+          updateBgStatus('🎵 Audio activo');
           if ('mediaSession' in navigator) {
             navigator.mediaSession.playbackState = 'playing';
           }
@@ -712,7 +746,7 @@ document.getElementById('startBtn').addEventListener('click', async () => {
   goTo('sA');
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
-  updateBgStatus('🎵 Sleep activo · pantalla se puede apagar');
+  updateBgStatus('🎵 Audio activo');
   engine();
 });
 
