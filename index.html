@@ -308,6 +308,8 @@ body.bo #sA{opacity:0;}
     <label class="tog"><span><span class="tt">Pájaros suaves</span><span class="td" style="display:block;">Solo al inicio (mientras te duermes) y en el amanecer. En el núcleo de la noche, silencio de eventos.</span></span><input type="checkbox" id="optBirds" checked></label>
     <label class="tog"><span><span class="tt">Binaural (experimental)</span><span class="td" style="display:block;">La evidencia es débil y mixta. Apagado por defecto; si lo activas, es suave y con audífonos.</span></span><input type="checkbox" id="optBinaural"></label>
     <label class="tog"><span><span class="tt">Voz guía en español</span><span class="td" style="display:block;">Frases breves al dormir y al despertar. Apagada por defecto para no sobresaltar.</span></span><input type="checkbox" id="optVoice"></label>
+    <label class="tog"><span><span class="tt">Registro sonar (experimental)</span><span class="td" style="display:block;">Pulsos de 18–20 kHz cada 3 s + micrófono: registra tu actividad en la noche para calibrar el ciclo. Al tocar «Dormir ahora» pedirá permiso de micrófono. Si el ambiente se oye raro o se corta, apaga el sonar esa noche.</span></span><input type="checkbox" id="snrToggle"></label>
+    <div class="calib" id="snrPrevRow" style="display:none;">🦇 Hay un registro sonar sin entregar (<span id="snrPrevCount">0</span> muestras).<div class="dream-actions" style="margin-top:8px;"><button class="dbtn ghost" id="snrPrevCopy" type="button">Copiar datos</button><button class="dbtn ghost" id="snrPrevClear" type="button">Borrar</button></div><div class="wmsg" id="snrPrevMsg"></div></div>
 
     <div class="calib" id="calibHint"></div>
 
@@ -349,6 +351,7 @@ body.bo #sA{opacity:0;}
     <canvas id="wc"></canvas>
     <div class="vb" id="voiceEl">…</div>
     <span class="bg-status" id="bgStatus">🎵 Audio activo</span>
+    <span class="bg-status" id="snrStatus" style="display:none;">🦇 Sonar: …</span>
     <div class="mini-row">
       <button class="mini-btn" id="wakeNowBtn" type="button">Ya desperté</button>
       <button class="mini-btn" id="stopBtn" type="button">Terminar</button>
@@ -378,6 +381,15 @@ body.bo #sA{opacity:0;}
       </div>
       <div class="wmsg" id="wakeSavedMsg"></div>
       <div class="dlog" id="dreamLog"></div>
+    </div>
+    <div class="dream-box" id="snrWakeBox" style="display:none;">
+      <span class="field-lbl">Registro sonar de anoche</span>
+      <div class="wmsg" id="snrWakeMsg" style="text-align:left;"></div>
+      <div class="dream-actions">
+        <button class="dbtn primary" id="snrCopyBtn" type="button">Copiar datos</button>
+        <button class="dbtn ghost" id="snrClearBtn" type="button">Borrar</button>
+      </div>
+      <div class="wmsg" id="snrCopyMsg"></div>
     </div>
     <button class="rbtn" id="restartBtn" type="button">Nueva sesión</button>
   </div>
@@ -1119,5 +1131,251 @@ if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)
 }
 </script>
 
+<script>
+// ═══ Módulo sonar (experimental) — añadido 2026-10-03 ═══
+// Pulsos 18–20 kHz cada 3 s + micrófono; registra actividad nocturna
+// en localStorage (clave vita_sonar_log_v1) para calibrar el ciclo.
+(function () {
+  "use strict";
+  var SNR_KEY = "vita_sonar_log_v1";
+  var snrCtx = null, snrAn = null, snrStream = null, snrTimers = [];
+  var snrOn = false, snrStart = 0, snrSamples = [], snrWin = [];
+  var snrSignalOk = false, snrLastSave = 0;
+
+  function snrEl(id) { return document.getElementById(id); }
+  function snrEvery(fn, ms) { var id = setInterval(fn, ms); snrTimers.push(id); return id; }
+  function snrAfter(fn, ms) { var id = setTimeout(fn, ms); snrTimers.push(id); return id; }
+
+  function snrBandDb() {
+    var buf = new Uint8Array(snrAn.frequencyBinCount);
+    snrAn.getByteFrequencyData(buf);
+    var sr = snrCtx.sampleRate, n = buf.length, pico = 0, i, f;
+    for (i = 0; i < n; i++) {
+      f = i * sr / (2 * n);
+      if (f >= 17500 && f <= 20500 && buf[i] > pico) pico = buf[i];
+    }
+    if (pico === 0) return NaN;
+    return snrAn.minDecibels + (pico / 255) * (snrAn.maxDecibels - snrAn.minDecibels);
+  }
+
+  function snrMediana(v) {
+    var a = v.slice().sort(function (x, y) { return x - y; });
+    return a.length ? a[Math.floor(a.length / 2)] : NaN;
+  }
+
+  function snrChirp() {
+    if (!snrCtx) return;
+    var t = snrCtx.currentTime + 0.02;
+    var o = snrCtx.createOscillator(), g = snrCtx.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(18000, t);
+    o.frequency.exponentialRampToValueAtTime(20000, t + 0.2);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.35, t + 0.02);
+    g.gain.setValueAtTime(0.35, t + 0.18);
+    g.gain.linearRampToValueAtTime(0, t + 0.2);
+    o.connect(g); g.connect(snrCtx.destination);
+    o.start(t); o.stop(t + 0.25);
+  }
+
+  function snrMeasure(durMs, withChirp, done) {
+    var vals = [], fin = Date.now() + durMs;
+    if (withChirp) {
+      var rep = function () { snrChirp(); if (Date.now() < fin) snrAfter(rep, 3000); };
+      rep();
+    }
+    var iv = setInterval(function () {
+      var db = snrBandDb();
+      if (isFinite(db)) vals.push(db);
+      if (Date.now() >= fin) { clearInterval(iv); done(vals); }
+    }, 200);
+    snrTimers.push(iv);
+  }
+
+  function snrSaveLocal() {
+    try {
+      localStorage.setItem(SNR_KEY, JSON.stringify({ tInicio: snrStart, muestras: snrSamples }));
+    } catch (e) {}
+  }
+
+  function snrSetStatus(txt) {
+    var e = snrEl("snrStatus");
+    if (e) { e.style.display = ""; e.textContent = "\uD83E\uDD87 " + txt; }
+  }
+
+  function snrTexto() {
+    var s = "REGISTRO SONAR VITA \u2014 " + new Date(snrStart || Date.now()).toLocaleString("es") + "\n";
+    s += "muestras cada 5 s: t(segundos), nivel banda dB, actividad dB\n";
+    for (var i = 0; i < snrSamples.length; i++) {
+      var m = snrSamples[i];
+      s += m.t + ", " + (m.db === null ? "sin se\u00F1al" : m.db) + ", " + m.act + "\n";
+    }
+    return s;
+  }
+
+  function snrResumenTexto() {
+    if (!snrSamples.length) return "Sin muestras.";
+    var acts = snrSamples.map(function (m) { return m.act; });
+    var media = acts.reduce(function (a, b) { return a + b; }, 0) / acts.length;
+    var pico = Math.max.apply(null, acts);
+    var valid = snrSamples.filter(function (m) { return m.db !== null; }).length;
+    return snrSamples.length + " muestras \u00B7 actividad media " + media.toFixed(2) +
+      " dB \u00B7 m\u00E1xima " + pico.toFixed(2) + " dB \u00B7 con se\u00F1al " +
+      Math.round(100 * valid / snrSamples.length) + "%. Copia los datos y p\u00E9galos en el chat con Nova.";
+  }
+
+  function snrMostrarCajas() {
+    var box = snrEl("snrWakeBox");
+    if (box && snrSamples.length) {
+      box.style.display = "";
+      var msg = snrEl("snrWakeMsg");
+      if (msg) msg.textContent = snrResumenTexto();
+    }
+    var row = snrEl("snrPrevRow");
+    if (row) {
+      if (snrSamples.length) {
+        row.style.display = "";
+        var c = snrEl("snrPrevCount");
+        if (c) c.textContent = snrSamples.length;
+      } else { row.style.display = "none"; }
+    }
+  }
+
+  function snrStartRec() {
+    if (snrOn) return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      snrSetStatus("Sonar: este navegador no permite micr\u00F3fono");
+      return;
+    }
+    navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+    }).then(function (st) {
+      snrStream = st;
+      var AC = window.AudioContext || window.webkitAudioContext;
+      snrCtx = new AC();
+      var src = snrCtx.createMediaStreamSource(st);
+      snrAn = snrCtx.createAnalyser();
+      snrAn.fftSize = 8192;
+      snrAn.smoothingTimeConstant = 0;
+      snrAn.minDecibels = -110;
+      snrAn.maxDecibels = -30;
+      src.connect(snrAn);
+      return snrCtx.resume();
+    }).then(function () {
+      snrOn = true;
+      snrSamples = []; snrWin = []; snrSignalOk = false; snrLastSave = 0;
+      snrSetStatus("Sonar: calibrando\u2026 deja el tel\u00E9fono quieto");
+      snrMeasure(10000, false, function (pisoVals) {
+        var piso = snrMediana(pisoVals.filter(isFinite));
+        snrMeasure(10000, true, function (chirpVals) {
+          var nivel = chirpVals.length ? Math.max.apply(null, chirpVals) : NaN;
+          var salto = nivel - piso;
+          snrSignalOk = isFinite(piso) && isFinite(nivel) && salto >= 6;
+          snrStart = Date.now();
+          snrSetStatus(snrSignalOk
+            ? "Sonar: registrando (" + salto.toFixed(1) + " dB sobre el piso)"
+            : "Sonar: se\u00F1al d\u00E9bil (" + (isFinite(salto) ? salto.toFixed(1) : "\u2014") + " dB) \u2014 sube el volumen o acerca el tel\u00E9fono");
+          snrChirp();
+          snrEvery(snrChirp, 3000);
+          var cuenta = 0;
+          snrEvery(function () {
+            var db = snrBandDb();
+            if (isFinite(db)) {
+              snrWin.push(db);
+              if (snrWin.length > 10) snrWin.shift();
+            }
+            cuenta++;
+            if (cuenta % 5 === 0) {
+              var m = snrWin.length ? snrWin.reduce(function (a, b) { return a + b; }, 0) / snrWin.length : 0;
+              var act = 0;
+              if (snrWin.length >= 5) {
+                var v = snrWin.reduce(function (a, b) { return a + (b - m) * (b - m); }, 0) / snrWin.length;
+                act = Math.sqrt(v);
+              }
+              snrSamples.push({
+                t: Math.round((Date.now() - snrStart) / 1000),
+                db: isFinite(db) ? +db.toFixed(1) : null,
+                act: +act.toFixed(2)
+              });
+              if (Date.now() - snrLastSave > 30000) { snrSaveLocal(); snrLastSave = Date.now(); }
+            }
+            if (snrSamples.length) {
+              var u = snrSamples[snrSamples.length - 1];
+              snrSetStatus((snrSignalOk ? "Sonar: registrando" : "Sonar: se\u00F1al d\u00E9bil") +
+                " \u00B7 " + snrSamples.length + " muestras \u00B7 act " + u.act.toFixed(1) + " dB");
+            }
+          }, 1000);
+        });
+      });
+    }).catch(function () {
+      snrSetStatus("Sonar: micr\u00F3fono denegado \u2014 act\u00EDvalo para este sitio en Ajustes");
+    });
+  }
+
+  function snrStopRec() {
+    if (!snrOn) { snrMostrarCajas(); return; }
+    snrOn = false;
+    snrTimers.forEach(function (id) { clearTimeout(id); clearInterval(id); });
+    snrTimers = [];
+    if (snrStream) { snrStream.getTracks().forEach(function (t) { t.stop(); }); snrStream = null; }
+    if (snrCtx) { snrCtx.close(); snrCtx = null; }
+    snrSaveLocal();
+    snrSetStatus("Sonar: detenido (" + snrSamples.length + " muestras)");
+    snrMostrarCajas();
+  }
+
+  function snrCopiar(msgId) {
+    var t = snrTexto();
+    var msg = snrEl(msgId);
+    function ok() { if (msg) msg.textContent = "\u00A1Copiado! P\u00E9galo en el chat con Nova."; }
+    function mal() { if (msg) msg.textContent = t; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(t).then(ok, mal);
+    } else { mal(); }
+  }
+
+  function snrBorrar() {
+    snrSamples = [];
+    try { localStorage.removeItem(SNR_KEY); } catch (e) {}
+    var box = snrEl("snrWakeBox");
+    if (box) box.style.display = "none";
+    snrMostrarCajas();
+    var m1 = snrEl("snrCopyMsg"); if (m1) m1.textContent = "Registro borrado.";
+    var m2 = snrEl("snrPrevMsg"); if (m2) m2.textContent = "Registro borrado.";
+  }
+
+  // ── Conexión con la sesión de VITA (sin tocar su código) ──
+  var startBtn = snrEl("startBtn");
+  if (startBtn) startBtn.addEventListener("click", function () {
+    var tog = snrEl("snrToggle");
+    if (tog && tog.checked) snrAfter(snrStartRec, 600);
+  });
+  ["stopBtn", "wakeNowBtn", "restartBtn"].forEach(function (id) {
+    var b = snrEl(id);
+    if (b) b.addEventListener("click", snrStopRec);
+  });
+  var sw = snrEl("sW");
+  if (sw && window.MutationObserver) {
+    new MutationObserver(function () {
+      if (!sw.classList.contains("hidden")) snrStopRec();
+    }).observe(sw, { attributes: true, attributeFilter: ["class"] });
+  }
+
+  var c1 = snrEl("snrCopyBtn"); if (c1) c1.addEventListener("click", function () { snrCopiar("snrCopyMsg"); });
+  var c2 = snrEl("snrClearBtn"); if (c2) c2.addEventListener("click", snrBorrar);
+  var c3 = snrEl("snrPrevCopy"); if (c3) c3.addEventListener("click", function () { snrCopiar("snrPrevMsg"); });
+  var c4 = snrEl("snrPrevClear"); if (c4) c4.addEventListener("click", snrBorrar);
+
+  // Registro anterior sin entregar (p. ej. la app se cerró sola)
+  try {
+    var prev = JSON.parse(localStorage.getItem(SNR_KEY) || "null");
+    if (prev && prev.muestras && prev.muestras.length) {
+      snrSamples = prev.muestras;
+      snrStart = prev.tInicio || 0;
+      snrMostrarCajas();
+    }
+  } catch (e) {}
+})();
+</script>
 </body>
 </html>
