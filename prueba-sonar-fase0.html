@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>VITA · Prueba de sonar (fase 0)</title>
+<style>
+  :root{ --oro:#e8b84b; --pergamino:#f3ead8; --fondo:#171310; --panel:#241d16; --rojo:#e06c5a; --verde:#7fc97f; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--fondo); color:var(--pergamino); font-family:-apple-system, Georgia, serif; padding:18px; }
+  h1{ font-size:22px; color:var(--oro); margin:4px 0 2px; letter-spacing:.5px; }
+  .sub{ opacity:.8; font-size:14px; margin-bottom:14px; }
+  .panel{ background:var(--panel); border:1px solid #3d3222; border-radius:14px; padding:16px; margin-bottom:14px; }
+  button{ width:100%; padding:16px; font-size:18px; border-radius:12px; border:0; background:var(--oro); color:#221806; font-weight:700; }
+  button.detener{ background:#4a3620; color:var(--pergamino); }
+  button:disabled{ opacity:.45; }
+  .grande{ font-size:44px; text-align:center; color:var(--oro); font-variant-numeric:tabular-nums; }
+  .etiqueta{ text-align:center; font-size:13px; opacity:.75; margin-top:-6px; }
+  .barra{ height:22px; background:#120e0a; border-radius:10px; overflow:hidden; margin-top:12px; border:1px solid #3d3222; }
+  .relleno{ height:100%; width:0%; background:linear-gradient(90deg,#6d5320,var(--oro)); transition:width .12s; }
+  #estado{ font-size:16px; text-align:center; min-height:24px; margin-top:10px; }
+  .pasos{ font-size:15px; line-height:1.55; }
+  .pasos li{ margin-bottom:7px; }
+  .dato{ display:flex; justify-content:space-between; font-size:14px; padding:3px 0; border-bottom:1px dashed #3d3222; }
+  .dato b{ color:var(--oro); font-variant-numeric:tabular-nums; }
+  #veredicto{ font-size:16px; line-height:1.5; }
+  .ok{ color:var(--verde); } .mal{ color:var(--rojo); }
+  small{ opacity:.65; }
+</style>
+</head>
+<body>
+  <h1>VITA · Prueba de sonar — fase 0</h1>
+  <div class="sub">¿Tu iPhone emite y «oye» el chirp de 18–20 kHz desde tu mesita?</div>
+
+  <div class="panel pasos">
+    <b>Antes de empezar</b>
+    <ol style="margin:8px 0 0; padding-left:20px;">
+      <li>Quita la funda si tapa el altavoz inferior o el micrófono.</li>
+      <li>Sube el volumen a ~70%.</li>
+      <li>Deja el teléfono en tu mesita, como quedaría de noche, con la pantalla hacia arriba.</li>
+      <li>Pulsa «Iniciar prueba» y acepta el permiso de micrófono.</li>
+    </ol>
+  </div>
+
+  <div class="panel">
+    <div class="grande" id="nivel">—</div>
+    <div class="etiqueta">nivel del eco en la banda 17,5–20,5 kHz (dB)</div>
+    <div class="barra"><div class="relleno" id="relleno"></div></div>
+    <div id="estado">En espera.</div>
+  </div>
+
+  <div class="panel">
+    <div class="dato"><span>Fase</span><b id="dFase">—</b></div>
+    <div class="dato"><span>Piso de ruido (sin chirp)</span><b id="dPiso">—</b></div>
+    <div class="dato"><span>Nivel con chirp</span><b id="dNivel">—</b></div>
+    <div class="dato"><span>Salto (chirp − piso)</span><b id="dSalto">—</b></div>
+    <div class="dato"><span>Reacción al movimiento</span><b id="dMov">—</b></div>
+    <div class="dato"><span>Muestreo de audio</span><b id="dSr">—</b></div>
+    <div class="dato" style="border-bottom:0;"><span>Pico detectado</span><b id="dPico">—</b></div>
+  </div>
+
+  <div class="panel" id="veredicto">Cuando la prueba arranque: primero mide 3 segundos en silencio, luego enciende el chirp. Con el chirp activo, <b>respira profundo frente al teléfono</b> y <b>mueve la mano a unos 30 cm</b>, varias veces. Si el medidor se mueve contigo, tu iPhone oye el eco: el sonar es viable en tu hardware.</div>
+
+  <button id="btn">Iniciar prueba</button>
+  <p><small>El chirp usa 18–20 kHz: la mayoría de adultos no lo oye (o apenas). Si te molesta, detén la prueba. Esto solo mide hardware; no graba ni guarda tu voz: el análisis ocurre en tu teléfono.</small></p>
+
+<script>
+(function(){
+  "use strict";
+  var btn = document.getElementById('btn');
+  var nivelEl = document.getElementById('nivel'), relleno = document.getElementById('relleno'), estado = document.getElementById('estado');
+  var dFase=document.getElementById('dFase'), dPiso=document.getElementById('dPiso'), dNivel=document.getElementById('dNivel'),
+      dSalto=document.getElementById('dSalto'), dMov=document.getElementById('dMov'), dSr=document.getElementById('dSr'), dPico=document.getElementById('dPico');
+  var veredicto = document.getElementById('veredicto');
+  var actx=null, analyser=null, micStream=null, fuente=null, corriendo=false, raf=0;
+  var fase='espera', tFase=0, piso=null, muestrasPiso=[], muestrasNivel=[], histMov=[], maxSaltoReaccion=0;
+
+  function chirpBuffer(ctx){
+    var sr = ctx.sampleRate, dur = 1.0, buf = ctx.createBuffer(1, sr*dur, sr), data = buf.getChannelData(0);
+    // 5 chirps FMCW de 100 ms (18->20 kHz) separados por 100 ms de silencio
+    for(var n=0;n<5;n++){
+      var ini = Math.floor(n*0.2*sr), len = Math.floor(0.1*sr);
+      for(var i=0;i<len;i++){
+        var ts = i/sr;
+        data[ini+i] = 0.85*Math.sin(2*Math.PI*(18000*ts + 10000*ts*ts));
+      }
+    }
+    return buf;
+  }
+
+  function nivelBanda(freqData, sr, fftSize){
+    // promedio de dB entre 17.5 y 20.5 kHz, usando solo la mitad util del espectro
+    var binHz = sr/fftSize, i0=Math.floor(17500/binHz), i1=Math.min(freqData.length-1, Math.ceil(20500/binHz));
+    var suma=0, n=0, pico=-Infinity, picoHz=0;
+    for(var i=i0;i<=i1;i++){ suma+=freqData[i]; n++; if(freqData[i]>pico){pico=freqData[i]; picoHz=Math.round(i*binHz);} }
+    return { db: n? suma/n : -120, pico: pico, picoHz: picoHz };
+  }
+
+  function mediana(a){
+    if(!a.length) return null;
+    var s = a.slice().sort(function(x,y){return x-y;});
+    var m = Math.floor(s.length/2);
+    return s.length%2? s[m] : (s[m-1]+s[m])/2;
+  }
+
+  function paso(){
+    if(!corriendo) return;
+    var arr = new Float32Array(analyser.frequencyBinCount);
+    analyser.getFloatFrequencyData(arr);
+    var r = nivelBanda(arr, actx.sampleRate, analyser.fftSize);
+    var lvl = isFinite(r.pico)? r.pico : null; // nivel del frame = pico de la banda (el barrido concentra la energía en pocos bins)
+    nivelEl.textContent = lvl!==null? lvl.toFixed(1) : '—';
+    var pct = lvl!==null? Math.max(0, Math.min(100, (lvl+110)/70*100)) : 0;
+    relleno.style.width = pct+'%';
+    dPico.textContent = lvl!==null? (r.picoHz+' Hz') : '—';
+
+    var ahora = performance.now();
+    if(fase==='piso'){
+      if(lvl!==null) muestrasPiso.push(lvl); // solo muestras finitas: -Infinity = sin dato, jamás un piso
+      estado.textContent = 'Midiendo el silencio del cuarto… ('+Math.max(0,3-(ahora-tFase)/1000).toFixed(0)+' s)';
+      if(ahora-tFase>=3000){
+        piso = muestrasPiso.length? mediana(muestrasPiso) : null;
+        dPiso.textContent = piso!==null? piso.toFixed(1)+' dB' : 'sin dato';
+        encenderChirp();
+        fase='chirp'; tFase=ahora; dFase.textContent='Chirp activo';
+        estado.textContent='Chirp sonando. Respira frente al teléfono y mueve la mano a 30 cm.';
+      }
+    } else if(fase==='chirp'){
+      if(lvl!==null){
+        muestrasNivel.push(lvl);
+        histMov.push(lvl); if(histMov.length>90) histMov.shift();
+        if(histMov.length>20){
+          var mx=Math.max.apply(null,histMov), mn=Math.min.apply(null,histMov);
+          var reaccion = mx-mn; maxSaltoReaccion=Math.max(maxSaltoReaccion,reaccion);
+          dMov.textContent = reaccion.toFixed(1)+' dB de variación';
+        }
+        var med = mediana(muestrasNivel);
+        dNivel.textContent = med.toFixed(1)+' dB (pico, mediana)';
+        if(piso!==null){ dSalto.textContent = (med-piso).toFixed(1)+' dB'; }
+      }
+      if(ahora-tFase>=45000){ terminar(); darVeredicto(); return; }
+    }
+    raf = requestAnimationFrame(paso);
+  }
+
+  function encenderChirp(){
+    fuente = actx.createBufferSource();
+    fuente.buffer = chirpBuffer(actx);
+    fuente.loop = true;
+    var g = actx.createGain(); g.gain.value = 0.9;
+    fuente.connect(g); g.connect(actx.destination);
+    fuente.start();
+  }
+
+  function darVeredicto(){
+    var nivelMed = muestrasNivel.length? mediana(muestrasNivel) : null;
+    if(piso===null || nivelMed===null){
+      veredicto.innerHTML = '<span class="mal"><b>Medición inválida:</b></span> el micrófono no entregó datos utilizables (piso o nivel sin muestras finitas). No es un «no» del iPhone: es una corrida sin dato. Repite en Safari con el permiso aceptado y cuéntale a Nova.';
+      return;
+    }
+    var salto = nivelMed - piso;
+    var oye = salto>6, reacciona = maxSaltoReaccion>3;
+    if(oye && reacciona){
+      veredicto.innerHTML = '<span class="ok"><b>Tu iPhone SÍ oye el sonar.</b></span> El eco sube '+salto.toFixed(1)+' dB con el chirp y reacciona a tu movimiento ('+maxSaltoReaccion.toFixed(1)+' dB de variación). La fase 0 pasa: podemos construir nuestro mecanismo. Cuéntale el resultado a Nova.';
+    } else if(oye){
+      veredicto.innerHTML = '<b>El chirp llega</b> (salto de '+salto.toFixed(1)+' dB) pero el eco apenas reaccionó a tu movimiento. Prueba otra vez con la mano más cerca y el teléfono sin funda, o con más volumen. Cuéntale el resultado a Nova.';
+    } else {
+      veredicto.innerHTML = '<span class="mal"><b>El eco no se distingue del ruido.</b></span> Revisa volumen, funda y permiso de micrófono, y prueba de nuevo. Si se repite, el altavoz/micrófono de este iPhone no alcanza la banda: se lo contamos a Nova y buscamos otra ruta.';
+    }
+  }
+
+  function terminar(){
+    corriendo=false; cancelAnimationFrame(raf);
+    if(fuente){ try{fuente.stop();}catch(e){} }
+    if(micStream){ micStream.getTracks().forEach(function(t){t.stop();}); }
+    if(actx){ actx.close(); }
+    btn.disabled=false; btn.textContent='Repetir la prueba'; btn.className='';
+    estado.textContent='Prueba detenida.';
+    dFase.textContent='Fin';
+  }
+
+  btn.addEventListener('click', function(){
+    if(corriendo){ terminar(); return; }
+    btn.disabled=true; btn.textContent='Detener'; btn.className='detener';
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      veredicto.innerHTML = '<span class="mal">Este navegador no permite micrófono por web.</span> Abre esta página en <b>Safari</b> (no dentro de otra app) y vuelve a intentar.';
+      btn.disabled=false; btn.textContent='Iniciar prueba'; return;
+    }
+    actx = new AC();
+    actx.resume();
+    dSr.textContent = actx.sampleRate+' Hz';
+    navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false } })
+    .then(function(stream){
+      micStream = stream;
+      var src = actx.createMediaStreamSource(stream);
+      analyser = actx.createAnalyser();
+      analyser.fftSize = 16384; analyser.minDecibels = -110; analyser.maxDecibels = -30; analyser.smoothingTimeConstant = 0.35;
+      src.connect(analyser);
+      corriendo=true; fase='piso'; tFase=performance.now(); muestrasPiso=[]; muestrasNivel=[]; histMov=[]; maxSaltoReaccion=0; piso=null;
+      dFase.textContent='Midiendo piso de ruido';
+      btn.disabled=false;
+      raf = requestAnimationFrame(paso);
+    })
+    .catch(function(err){
+      veredicto.innerHTML = '<span class="mal">Sin acceso al micrófono.</span> Acepta el permiso cuando Safari lo pida (o revisa Ajustes &gt; Safari &gt; Micrófono) y vuelve a intentar.';
+      btn.disabled=false; btn.textContent='Iniciar prueba'; btn.className='';
+      if(actx) actx.close();
+    });
+  });
+})();
+</script>
+</body>
+</html>
