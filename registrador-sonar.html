@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registrador sonar nocturno — SSEE VITA</title>
+<style>
+  :root { color-scheme: dark; }
+  body { font-family: -apple-system, system-ui, sans-serif; background: #0b0e14; color: #e8e4d8; margin: 0; padding: 20px 16px 40px; }
+  h1 { font-size: 20px; margin: 0 0 6px; }
+  p { line-height: 1.45; }
+  .nota { color: #b8b2a4; font-size: 14px; }
+  button { background: #2b3a55; color: #e8e4d8; border: 1px solid #3f5578; border-radius: 10px; padding: 11px 14px; font-size: 15px; margin: 4px 6px 4px 0; }
+  button.principal { background: #3f5f46; border-color: #5f8f6b; }
+  button.peligro { background: #5a3038; border-color: #8a4a55; }
+  button:disabled { opacity: .45; }
+  #estado { background: #121722; border: 1px solid #26304a; border-radius: 12px; padding: 14px; margin: 14px 0; font-size: 15px; }
+  #estado b { color: #f0d9a0; }
+  .semaforo { font-size: 22px; }
+  #pantallaNegra { display: none; position: fixed; inset: 0; background: #000; z-index: 50; align-items: center; justify-content: center; flex-direction: column; }
+  #pantallaNegra.visible { display: flex; }
+  #reloj { color: #1c1c22; font-size: 44px; font-weight: 600; }
+  #pantallaNegra .mini { color: #141419; font-size: 13px; margin-top: 10px; }
+  pre { white-space: pre-wrap; word-break: break-all; background: #0e1119; border: 1px solid #232c42; border-radius: 10px; padding: 10px; font-size: 11px; max-height: 220px; overflow: auto; }
+</style>
+</head>
+<body>
+<h1>Registrador sonar — una noche de datos</h1>
+<p class="nota">Emite pulsos de sonar muy suaves (18–20&nbsp;kHz) cada 3 segundos y registra cómo responde la banda: nivel y actividad (movimiento/respiración cerca del teléfono). Al despertar, copias los datos y los pegas en el chat con Nova.</p>
+<p class="nota"><b>Reglas de la noche:</b> teléfono en la mesita, cargando, sin funda que tape el altavoz. Volumen ~70% (11 clics desde cero, o 5 abajo desde el tope). No bloquees con el botón lateral: usa el botón «Pantalla negra» de aquí y deja esta página abierta. Sin alarma de la app esta noche: deja tu alarma normal de las 7:00.</p>
+<p class="nota">Si oyes el pulso y te molesta, baja el volumen: el micrófono está junto al altavoz y seguirá viendo el eco.</p>
+
+<div id="estado">Estado: <b>listo para empezar</b>.<br><span id="detalle">Duración: — · Muestras: 0 · Señal: —</span></div>
+
+<p>
+  <button id="btnIniciar" class="principal">Iniciar registro</button>
+  <button id="btnNegra" disabled>Pantalla negra</button>
+</p>
+<p>
+  <button id="btnDetener" class="peligro" disabled>Detener</button>
+  <button id="btnCopiar" disabled>Copiar datos</button>
+  <button id="btnBorrar" class="peligro" disabled>Borrar registro</button>
+</p>
+
+<h3>Resumen</h3>
+<pre id="resumen">Todavía no hay datos.</pre>
+
+<div id="pantallaNegra">
+  <div id="reloj">--:--</div>
+  <div class="mini">registrando… toca para volver</div>
+</div>
+
+<script>
+"use strict";
+
+// ---------- Parámetros del pulso ----------
+const F0 = 18000, F1 = 20000;       // barrido del chirp
+const BANDA = [17500, 20500];       // banda medida
+const DUR_CHIRP = 0.2;              // s
+const CADA_CHIRP = 3;               // s entre pulsos
+const GAN_CHIRP = 0.35;             // nivel del pulso (suave)
+const CLAVE = "vita_sonar_log_v1";
+
+// ---------- Estado ----------
+let actx = null, analyser = null, stream = null, oscLoop = null;
+let corriendo = false, tInicio = 0, wakeLock = null;
+let muestras = [];            // {t, db, act}
+let ultimosDb = [];           // ventana 10 s para actividad
+let temporizadores = [];
+let ultimoGuardado = 0;
+let senalOk = false;
+
+const $ = id => document.getElementById(id);
+const estadoEl = $("estado"), detalleEl = $("detalle"), resumenEl = $("resumen");
+
+function fmtTiempo(ms) {
+  const s = Math.floor(ms / 1000);
+  const h = String(Math.floor(s / 3600)).padStart(2, "0");
+  const m = String(Math.floor(s % 3600 / 60)).padStart(2, "0");
+  const ss = String(s % 60).padStart(2, "0");
+  return h + ":" + m + ":" + ss;
+}
+
+function mediana(v) {
+  const a = [...v].sort((x, y) => x - y);
+  return a.length ? a[Math.floor(a.length / 2)] : NaN;
+}
+
+function nivelBandaDb() {
+  const buf = new Uint8Array(analyser.frequencyBinCount);
+  analyser.getByteFrequencyData(buf);
+  const sr = actx.sampleRate, n = buf.length;
+  const hz = i => i * sr / (2 * n);
+  let pico = 0;
+  for (let i = 0; i < n; i++) {
+    const f = hz(i);
+    if (f >= BANDA[0] && f <= BANDA[1] && buf[i] > pico) pico = buf[i];
+  }
+  if (pico === 0) return NaN;    // silencio digital: no es un piso válido
+  return analyser.minDecibels + (pico / 255) * (analyser.maxDecibels - analyser.minDecibels);
+}
+
+function actividadActual() {
+  if (ultimosDb.length < 5) return 0;
+  const m = ultimosDb.reduce((a, b) => a + b, 0) / ultimosDb.length;
+  return Math.sqrt(ultimosDb.reduce((a, b) => a + (b - m) * (b - m), 0) / ultimosDb.length);
+}
+
+function programar(fn, ms) { temporizadores.push(setTimeout(fn, ms)); }
+function cada(fn, ms) { temporizadores.push(setInterval(fn, ms)); }
+
+function tocarChirp() {
+  if (!actx) return;
+  const t = actx.currentTime + 0.02;
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type = "sine";
+  o.frequency.setValueAtTime(F0, t);
+  o.frequency.exponentialRampToValueAtTime(F1, t + DUR_CHIRP);
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(GAN_CHIRP, t + 0.02);
+  g.gain.setValueAtTime(GAN_CHIRP, t + DUR_CHIRP - 0.02);
+  g.gain.linearRampToValueAtTime(0, t + DUR_CHIRP);
+  o.connect(g).connect(actx.destination);
+  o.start(t); o.stop(t + DUR_CHIRP + 0.05);
+}
+
+// Medición corta (para calibración): promedia picos finitos durante durMs.
+function medir(durMs, conChirp, listo) {
+  const vals = [];
+  const fin = Date.now() + durMs;
+  if (conChirp) {
+    const rep = () => { tocarChirp(); if (Date.now() < fin) programar(rep, CADA_CHIRP * 1000); };
+    rep();
+  }
+  const iv = setInterval(() => {
+    const db = nivelBandaDb();
+    if (isFinite(db)) vals.push(db);
+    if (Date.now() >= fin) { clearInterval(iv); listo(vals); }
+  }, 200);
+  temporizadores.push(iv);
+}
+
+async function pedirWakeLock() {
+  try {
+    if (navigator.wakeLock) {
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", () => { if (corriendo) pedirWakeLock(); });
+    }
+  } catch (e) { /* sin wake lock: la pantalla negra tenue igual sirve en la práctica */ }
+}
+
+function guardarLocal() {
+  try {
+    localStorage.setItem(CLAVE, JSON.stringify({ tInicio, muestras }));
+  } catch (e) { /* almacenamiento lleno o bloqueado: seguimos en memoria */ }
+}
+
+function actualizarPantalla() {
+  if (!corriendo) return;
+  const el = Date.now() - tInicio;
+  const ult = muestras[muestras.length - 1];
+  detalleEl.textContent =
+    "Duración: " + fmtTiempo(el) + " · Muestras: " + muestras.length +
+    " · Señal: " + (senalOk ? "buena" : "débil o sin confirmar") +
+    (ult ? " · Actividad ahora: " + ult.act.toFixed(1) + " dB" : "");
+  $("reloj").textContent = new Date().toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" });
+}
+
+function iniciar() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    estadoEl.innerHTML = "Estado: <b>este navegador no permite micrófono</b>. Abre la página en Safari.";
+    return;
+  }
+  navigator.mediaDevices.getUserMedia({
+    audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+  }).then(st => {
+    stream = st;
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    const fuente = actx.createMediaStreamSource(st);
+    analyser = actx.createAnalyser();
+    analyser.fftSize = 8192;
+    analyser.smoothingTimeConstant = 0;
+    analyser.minDecibels = -110;
+    analyser.maxDecibels = -30;
+    fuente.connect(analyser);
+    return actx.resume();
+  }).then(() => {
+    corriendo = true;
+    $("btnIniciar").disabled = true;
+    $("btnNegra").disabled = false;
+    $("btnDetener").disabled = false;
+    pedirWakeLock();
+
+    estadoEl.innerHTML = "Estado: <b>calibrando (20 s)</b>… deja el teléfono quieto en la mesita.";
+    medir(10000, false, valsPiso => {
+      const piso = mediana(valsPiso.filter(isFinite));
+      medir(10000, true, valsChirp => {
+        const nivel = valsChirp.length ? Math.max(...valsChirp) : NaN;
+        senalOk = isFinite(piso) && isFinite(nivel) && (nivel - piso) >= 6;
+        estadoEl.innerHTML = "Estado: <b>registrando</b>. " +
+          (senalOk
+            ? "Señal inicial buena (" + (nivel - piso).toFixed(1) + " dB sobre el piso): apaga la luz y a dormir."
+            : "Ojo: señal inicial débil (" + (isFinite(nivel - piso) ? (nivel - piso).toFixed(1) : "—") + " dB). Sube el volumen o acerca el teléfono a la cama; el registro sigue, pero puede no servir.");
+        tInicio = Date.now();
+        // Bucle de pulsos
+        tocarChirp();
+        cada(tocarChirp, CADA_CHIRP * 1000);
+        // Muestreo: lee cada 1 s, guarda cada 5 s
+        let cuenta = 0;
+        cada(() => {
+          const db = nivelBandaDb();
+          if (isFinite(db)) {
+            ultimosDb.push(db);
+            if (ultimosDb.length > 10) ultimosDb.shift();
+          }
+          cuenta++;
+          if (cuenta % 5 === 0) {
+            muestras.push({ t: Math.round((Date.now() - tInicio) / 1000), db: isFinite(db) ? +db.toFixed(1) : null, act: +actividadActual().toFixed(2) });
+            if (Date.now() - ultimoGuardado > 30000) { guardarLocal(); ultimoGuardado = Date.now(); }
+          }
+          actualizarPantalla();
+        }, 1000);
+      });
+    });
+  }).catch(() => {
+    estadoEl.innerHTML = "Estado: <b>micrófono denegado</b>. Safari → «aA» → Ajustes del sitio web → Micrófono → Permitir, y vuelve a tocar Iniciar.";
+  });
+}
+
+function detener() {
+  corriendo = false;
+  temporizadores.forEach(id => { clearTimeout(id); clearInterval(id); });
+  temporizadores = [];
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  if (actx) actx.close();
+  if (wakeLock) { try { wakeLock.release(); } catch (e) {} }
+  guardarLocal();
+  $("btnIniciar").disabled = false;
+  $("btnDetener").disabled = true;
+  $("btnCopiar").disabled = muestras.length === 0;
+  $("btnBorrar").disabled = muestras.length === 0;
+  estadoEl.innerHTML = "Estado: <b>detenido</b>. Copia los datos y pégalos en el chat con Nova.";
+  mostrarResumen();
+}
+
+function mostrarResumen() {
+  if (!muestras.length) { resumenEl.textContent = "Todavía no hay datos."; return; }
+  const actos = muestras.map(m => m.act);
+  const media = actos.reduce((a, b) => a + b, 0) / actos.length;
+  const pico = Math.max(...actos);
+  const dur = fmtTiempo((Date.now() - (tInicio || Date.now())));
+  resumenEl.textContent =
+    "Duración registrada: " + dur + " (aprox. según reloj de la página)\n" +
+    "Muestras (cada 5 s): " + muestras.length + "\n" +
+    "Actividad media: " + media.toFixed(2) + " dB · Actividad máxima: " + pico.toFixed(2) + " dB\n" +
+    "Señal al inicio: " + (senalOk ? "buena" : "débil/sin confirmar") + "\n\n" +
+    "Para entregar: toca «Copiar datos» y pega el texto en el chat con Nova.";
+}
+
+function textoDatos() {
+  let s = "REGISTRO SONAR VITA — " + new Date(tInicio).toLocaleString("es") + "\n";
+  s += "muestras cada 5 s: t(segundos), nivel banda dB, actividad dB\n";
+  for (const m of muestras) s += m.t + ", " + (m.db === null ? "sin señal" : m.db) + ", " + m.act + "\n";
+  return s;
+}
+
+$("btnIniciar").addEventListener("click", iniciar);
+$("btnDetener").addEventListener("click", detener);
+$("btnCopiar").addEventListener("click", () => {
+  const t = textoDatos();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(t).then(
+      () => { $("btnCopiar").textContent = "¡Copiado!"; },
+      () => { resumenEl.textContent = t; });
+  } else { resumenEl.textContent = t; }
+});
+$("btnBorrar").addEventListener("click", () => {
+  muestras = [];
+  try { localStorage.removeItem(CLAVE); } catch (e) {}
+  $("btnCopiar").disabled = true;
+  $("btnBorrar").disabled = true;
+  resumenEl.textContent = "Registro borrado.";
+});
+$("btnNegra").addEventListener("click", () => { $("pantallaNegra").classList.add("visible"); });
+$("pantallaNegra").addEventListener("click", () => { $("pantallaNegra").classList.remove("visible"); });
+
+// Recuperar un registro anterior sin exportar (p. ej. si la página se cerró sola)
+try {
+  const prev = JSON.parse(localStorage.getItem(CLAVE) || "null");
+  if (prev && prev.muestras && prev.muestras.length) {
+    muestras = prev.muestras;
+    tInicio = prev.tInicio || Date.now();
+    $("btnCopiar").disabled = false;
+    $("btnBorrar").disabled = false;
+    estadoEl.innerHTML = "Estado: <b>hay un registro anterior sin entregar</b> (" + muestras.length + " muestras). Cópialo con «Copiar datos» o bórralo.";
+    mostrarResumen();
+  }
+} catch (e) {}
+</script>
+</body>
+</html>
