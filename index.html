@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="SSEE VITA">
@@ -36,12 +35,13 @@ body{
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
   padding:env(safe-area-inset-top,20px) 20px env(safe-area-inset-bottom,20px);
+  overflow-y:auto;
   -webkit-overflow-scrolling:touch;
   transition:opacity .6s ease,transform .6s ease;
 }
 .screen.hidden{opacity:0;pointer-events:none;transform:translateY(12px);}
 /* SETUP */
-.card{width:100%;max-width:340px;text-align:center;}
+.card{width:100%;max-width:340px;text-align:center;margin:auto;}
 .logo{
   font-family:var(--font-mono);
   font-size:10px;letter-spacing:5px;
@@ -55,11 +55,10 @@ body{
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
   background-clip:text;
-  color:transparent; /* fallback */
+  color:transparent;
   letter-spacing:1px;margin-bottom:4px;
   display:block;
 }
-/* Fallback si -webkit-text-fill-color no funciona */
 @supports not (-webkit-background-clip:text){
   .title{background:none;color:var(--v);}
 }
@@ -90,12 +89,43 @@ input[type="time"]{
   text-align:center;
   outline:none;
   margin-bottom:20px;
-  /* Fix Safari iOS que muestra fondo blanco */
   -webkit-text-fill-color:#fff;
 }
 input[type="time"]::-webkit-datetime-edit{color:#fff;-webkit-text-fill-color:#fff;}
 input[type="time"]::-webkit-datetime-edit-fields-wrapper{color:#fff;}
 input[type="time"]::-webkit-calendar-picker-indicator{display:none;-webkit-appearance:none;}
+/* Sliders */
+.rng-row{margin-bottom:16px;text-align:left;}
+.rng-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+.rng-val{font-family:var(--font-mono);font-size:13px;color:var(--t);}
+input[type="range"]{
+  -webkit-appearance:none;appearance:none;
+  width:100%;height:26px;background:transparent;outline:none;
+}
+input[type="range"]::-webkit-slider-runnable-track{height:3px;border-radius:2px;background:rgba(255,255,255,.14);}
+input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:22px;height:22px;border-radius:50%;
+  background:var(--t);margin-top:-9.5px;border:none;
+  box-shadow:0 0 10px rgba(0,212,170,.35);
+}
+input[type="range"]::-moz-range-track{height:3px;border-radius:2px;background:rgba(255,255,255,.14);}
+input[type="range"]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--t);border:none;}
+.rng-hint{font-size:9px;color:var(--dm);margin-top:2px;line-height:1.5;}
+/* Plan calculado */
+.plan{
+  background:rgba(0,212,170,.05);border:1px solid rgba(0,212,170,.16);
+  border-radius:12px;padding:12px 14px;margin-bottom:16px;
+  font-size:11.5px;color:rgba(255,255,255,.65);line-height:1.65;text-align:left;
+}
+.plan strong{color:var(--t);font-weight:500;}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;}
+.chip{
+  border:1px solid var(--bd);border-radius:20px;padding:6px 11px;
+  font-size:10px;color:var(--dm);cursor:pointer;-webkit-user-select:none;user-select:none;
+  font-family:var(--font-mono);
+}
+.chip.on{border-color:var(--t);color:var(--t);background:rgba(0,212,170,.08);}
 .sound-grid{
   display:grid;grid-template-columns:1fr 1fr;
   gap:8px;margin-bottom:16px;
@@ -110,12 +140,22 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none;-webkit-appea
 .snd .nm{font-size:10px;letter-spacing:1px;text-transform:uppercase;display:block;}
 .snd .ds{font-size:9px;color:var(--dm);margin-top:2px;opacity:.6;display:block;}
 .snd.on{border-color:var(--t);color:var(--t);background:rgba(0,212,170,.07);}
+/* Toggles */
+.tog{
+  display:flex;justify-content:space-between;align-items:center;
+  background:var(--sf);border:1px solid var(--bd);border-radius:12px;
+  padding:11px 13px;margin-bottom:8px;text-align:left;cursor:pointer;
+}
+.tog .tt{font-size:11px;color:var(--tx);letter-spacing:.4px;}
+.tog .td{font-size:9px;color:var(--dm);margin-top:2px;line-height:1.45;}
+.tog input[type="checkbox"]{accent-color:var(--t);width:20px;height:20px;flex-shrink:0;margin-left:10px;}
 .ios-tip{
   background:rgba(0,212,170,.06);border:1px solid rgba(0,212,170,.18);
   border-radius:10px;padding:10px 12px;margin-bottom:16px;
-  font-size:11px;color:rgba(0,212,170,.65);line-height:1.55;
+  font-size:11px;color:rgba(0,212,170,.65);line-height:1.55;text-align:left;
 }
 .ios-tip strong{color:rgba(0,212,170,.9);}
+.calib{font-size:10px;color:var(--dm);line-height:1.6;margin-bottom:14px;text-align:left;}
 .go-btn{
   display:block;width:100%;padding:18px;
   border:none;border-radius:50px;
@@ -132,7 +172,7 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none;-webkit-appea
 }
 .go-btn:active{opacity:.85;}
 /* ACTIVE SCREEN */
-.wrap{width:100%;max-width:370px;text-align:center;}
+.wrap{width:100%;max-width:370px;text-align:center;margin:auto;}
 .rw{position:relative;width:185px;height:185px;margin:0 auto 16px;}
 .rs{width:185px;height:185px;-webkit-transform:rotate(-90deg);transform:rotate(-90deg);}
 .rt{fill:none;stroke:rgba(255,255,255,.04);stroke-width:4;}
@@ -147,7 +187,7 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none;-webkit-appea
 .rcyc{font-size:9px;letter-spacing:2px;color:var(--dm);margin-top:5px;display:block;}
 .pc{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:12px 16px;margin-bottom:12px;}
 .pn{font-family:var(--font-mono);font-size:11px;letter-spacing:2px;margin-bottom:6px;-webkit-transition:color 2s;transition:color 2s;display:block;}
-.pd{font-size:9px;color:var(--dm);margin-bottom:8px;display:block;}
+.pd{font-size:9px;color:var(--dm);margin-bottom:8px;display:block;line-height:1.5;}
 .pt{background:rgba(255,255,255,.05);border-radius:3px;height:2px;overflow:hidden;}
 .pf{height:100%;border-radius:3px;width:0%;background:-webkit-linear-gradient(90deg,var(--v),var(--t));background:linear-gradient(90deg,var(--v),var(--t));-webkit-transition:width 3s ease;transition:width 3s ease;}
 .st{display:-webkit-grid;display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:12px;}
@@ -159,13 +199,45 @@ input[type="time"]::-webkit-calendar-picker-indicator{display:none;-webkit-appea
 .vb{background:rgba(124,110,224,.06);border:1px solid rgba(124,110,224,.14);border-radius:10px;padding:9px 13px;font-size:11px;color:rgba(255,255,255,.35);font-style:italic;min-height:30px;line-height:1.5;-webkit-transition:all 1s;transition:all 1s;}
 .bg-status{font-size:9px;letter-spacing:1.5px;color:rgba(0,212,170,.45);margin-top:8px;text-transform:uppercase;display:block;}
 .th{font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.1);margin-top:6px;text-transform:uppercase;display:block;}
+.mini-row{display:flex;gap:8px;justify-content:center;margin-top:14px;}
+.mini-btn{
+  background:transparent;border:1px solid var(--bd);border-radius:50px;
+  color:var(--dm);padding:9px 18px;font-size:10px;letter-spacing:2px;
+  cursor:pointer;font-family:var(--font-ui);text-transform:uppercase;
+}
+.mini-btn:active{color:var(--t);border-color:var(--t);}
 /* WAKE */
 #sW{background:#000;}
 .worb{width:90px;height:90px;margin:0 auto 22px;border-radius:50%;background:-webkit-radial-gradient(circle,rgba(0,212,170,.22),rgba(124,110,224,.1),transparent 70%);background:radial-gradient(circle,rgba(0,212,170,.22),rgba(124,110,224,.1),transparent 70%);-webkit-animation:wo 4s ease-in-out infinite;animation:wo 4s ease-in-out infinite;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;font-size:32px;}
 @-webkit-keyframes wo{0%,100%{-webkit-box-shadow:0 0 25px rgba(0,212,170,.12);box-shadow:0 0 25px rgba(0,212,170,.12);}50%{-webkit-box-shadow:0 0 45px rgba(0,212,170,.25);box-shadow:0 0 45px rgba(0,212,170,.25);}}
 @keyframes wo{0%,100%{box-shadow:0 0 25px rgba(0,212,170,.12);}50%{box-shadow:0 0 45px rgba(0,212,170,.25);}}
 .wt{font-size:22px;font-weight:200;background:-webkit-linear-gradient(135deg,var(--t),var(--v));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;color:transparent;letter-spacing:2px;margin-bottom:7px;display:block;}
-.wm{font-size:12px;color:var(--dm);margin-bottom:26px;line-height:1.65;}
+.wm{font-size:12px;color:var(--dm);margin-bottom:22px;line-height:1.65;}
+.dream-box{width:100%;max-width:340px;text-align:left;margin:0 auto;}
+textarea{
+  width:100%;min-height:92px;resize:vertical;
+  background:var(--sf);border:1px solid var(--bd);border-radius:12px;
+  color:#fff;font-family:var(--font-ui);font-size:14px;line-height:1.55;
+  padding:12px;outline:none;-webkit-appearance:none;
+}
+textarea:focus{border-color:rgba(0,212,170,.4);}
+.dream-quick{display:flex;gap:6px;margin:10px 0;flex-wrap:wrap;}
+.dq{
+  flex:1;border:1px solid var(--bd);border-radius:20px;padding:8px 6px;
+  font-size:10px;color:var(--dm);cursor:pointer;text-align:center;
+  -webkit-user-select:none;user-select:none;background:var(--sf);white-space:nowrap;
+}
+.dq:active{color:var(--t);border-color:var(--t);}
+.dream-actions{display:flex;gap:8px;margin-bottom:10px;}
+.dbtn{
+  flex:1;border-radius:50px;padding:13px 8px;font-size:11px;letter-spacing:1.5px;
+  cursor:pointer;font-family:var(--font-ui);text-transform:uppercase;text-align:center;
+}
+.dbtn.primary{background:-webkit-linear-gradient(135deg,var(--t),#00a883);background:linear-gradient(135deg,var(--t),#00a883);border:none;color:#04231c;font-weight:600;}
+.dbtn.ghost{background:transparent;border:1px solid var(--bd);color:var(--tx);}
+.wmsg{font-size:11px;color:var(--t);min-height:16px;line-height:1.5;margin-bottom:8px;}
+.dlog{font-size:10px;color:var(--dm);line-height:1.7;margin-bottom:16px;}
+.dlog .dl-t{color:rgba(255,255,255,.45);font-family:var(--font-mono);}
 .rbtn{background:transparent;border:1px solid var(--bd);border-radius:50px;color:var(--tx);padding:13px 28px;font-size:12px;letter-spacing:2px;cursor:pointer;font-family:var(--font-ui);-webkit-transition:all .3s;transition:all .3s;}
 body.bo #sA{opacity:0;}
 </style>
@@ -174,37 +246,23 @@ body.bo #sA{opacity:0;}
 
 <!--
   ═══════════════════════════════════════════════════════════════
-  ESTRATEGIA DE AUDIO EN BACKGROUND PARA iOS
+  ESTRATEGIA DE AUDIO EN BACKGROUND PARA iOS (heredada de v1)
   ═══════════════════════════════════════════════════════════════
-  El problema: iOS Safari suspende el proceso del navegador
-  cuando la pantalla se bloquea, cortando Web Audio API.
+  1. <audio> element con loop de audio real (tono 20 Hz) —
+     mantiene el proceso iOS activo con pantalla bloqueada.
+     [ref: soledad penadés 2024]
+  2. Media Session API — iOS trata el audio como app de música.
+     [ref: progressier.com 2026; dbushell.com 2023]
+  3. visibilitychange — reactiva el AudioContext al volver.
+  4. Instalar como PWA mejora el comportamiento en fondo.
 
-  La solución en capas:
-  1. <audio> element con un loop de audio real (WAV silencioso
-     extendido) — esto mantiene el proceso iOS activo.
-     [ref: soledad penadés 2024 — AudioElement sí sigue con
-     pantalla bloqueada; Web Audio solo, no]
-
-  2. Media Session API — registra la sesión con el OS de iOS.
-     Esto hace que iOS trate el audio como una app de música,
-     apareciendo en la pantalla de bloqueo con controles y
-     manteniendo el proceso vivo.
-     [ref: progressier.com 2026 — Media Session + <audio>
-     permite control desde lock screen en iOS y Android]
-
-  3. visibilitychange listener — detecta cuando la app vuelve
-     al foreground y reactiva el AudioContext si fue suspendido.
-
-  4. Instrucción para instalar como PWA — cuando se instala
-     desde Safari ("Agregar a pantalla de inicio"), el comportamiento
-     de background audio mejora significativamente.
+  VITA v2 — qué cambió y por qué: ver investigacion.md
+  (ciclos desde fin de latencia, ciclo personal 80–110, rampa
+  de 30 min que termina en el fin de ciclo, acordes ancla en
+  entonación justa, buffer de ruido largo sin loop audible,
+  pájaros solo en inducción y amanecer, binaural opcional).
   ═══════════════════════════════════════════════════════════════
 -->
-
-<!-- El <audio> element es el ancla que mantiene iOS despierto.
-     Debe reproducir audio REAL (no completamente silencioso).
-     Usamos un tono sinusoidal de 20Hz (inaudible para humanos)
-     generado como WAV en base64 — mantendrá el proceso activo. -->
 
 <audio id="iosAnchor" loop playsinline preload="auto" style="display:none"></audio>
 
@@ -212,32 +270,54 @@ body.bo #sA{opacity:0;}
 
 <div class="screen" id="sS">
   <div class="card">
-    <div class="logo">SSEE VITA</div>
-    <div class="title">Alarma de Sueño Natural</div>
-    <div class="subtitle">Neurociencia · 432Hz · Ciclos de 90 min</div>
+    <span class="logo">SSEE VITA</span>
+    <span class="title">Alarma de Sueño Natural</span>
+    <span class="subtitle">Ambiente generativo · Ciclos personales · Despertar gradual</span>
 
-```
-<div class="field-lbl">Hora de despertar</div>
-<input type="time" id="wakeInput" value="06:00">
+    <span class="field-lbl">Hora límite (como tarde)</span>
+    <input type="time" id="deadlineInput" value="06:30">
 
-<div class="field-lbl">Ambiente</div>
-<div class="sound-grid">
-  <div class="snd on" data-s="rain"><span class="ic">🌧</span><span class="nm">Lluvia</span><span class="ds">Piano + lluvia</span></div>
-  <div class="snd" data-s="forest"><span class="ic">🌿</span><span class="nm">Bosque</span><span class="ds">Piano + viento</span></div>
-  <div class="snd" data-s="ocean"><span class="ic">🌊</span><span class="nm">Océano</span><span class="ds">Piano + olas</span></div>
-  <div class="snd" data-s="pure"><span class="ic">◎</span><span class="nm">Puro</span><span class="ds">Solo piano</span></div>
-</div>
+    <div class="rng-row">
+      <div class="rng-head"><span class="field-lbl" style="margin:0;">Tardas en dormirte</span><span class="rng-val" id="latVal">15 min</span></div>
+      <input type="range" id="latRange" min="5" max="45" step="1" value="15">
+      <div class="rng-hint">Los ciclos se cuentan desde que te duermes, no desde que tocas «Dormir ahora».</div>
+    </div>
 
-<!-- Instrucción para instalar como PWA en iOS -->
-<div class="ios-tip" id="iosTip">
-  📱 <strong>Para pantalla bloqueada:</strong> En Safari, toca
-  <strong>Compartir → Agregar a pantalla de inicio</strong>.
-  Luego abre la app instalada. Esto permite que el audio continúe con la pantalla apagada.
-</div>
+    <div class="rng-row">
+      <div class="rng-head"><span class="field-lbl" style="margin:0;">Tu ciclo de sueño</span><span class="rng-val" id="cycVal">90 min</span></div>
+      <input type="range" id="cycRange" min="80" max="110" step="1" value="90">
+      <div class="rng-hint">El promedio real es 90 ± 25 min (mediana poblacional 96). Se calibra con tus noches, abajo.</div>
+    </div>
 
-<button class="go-btn" id="startBtn">Iniciar sesión de sueño</button>
-```
+    <div class="plan" id="planOut">Calculando tu plan de esta noche…</div>
 
+    <span class="field-lbl">Ambiente</span>
+    <div class="sound-grid">
+      <div class="snd on" data-s="rain"><span class="ic">🌧</span><span class="nm">Lluvia</span><span class="ds">Acordes + lluvia suave</span></div>
+      <div class="snd" data-s="forest"><span class="ic">🌿</span><span class="nm">Bosque</span><span class="ds">Acordes + viento</span></div>
+      <div class="snd" data-s="ocean"><span class="ic">🌊</span><span class="nm">Océano</span><span class="ds">Acordes + oleaje</span></div>
+      <div class="snd" data-s="pure"><span class="ic">◎</span><span class="nm">Puro</span><span class="ds">Solo acordes</span></div>
+    </div>
+
+    <div class="rng-row">
+      <div class="rng-head"><span class="field-lbl" style="margin:0;">Volumen al despertar</span><span class="rng-val" id="volVal">70%</span></div>
+      <input type="range" id="volRange" min="10" max="100" step="1" value="70">
+      <div class="rng-hint">De noche suena al 45% de este nivel; la rampa de 30 min sube hasta él sin saltos.</div>
+    </div>
+
+    <label class="tog"><span><span class="tt">Pájaros suaves</span><span class="td" style="display:block;">Solo al inicio (mientras te duermes) y en el amanecer. En el núcleo de la noche, silencio de eventos.</span></span><input type="checkbox" id="optBirds" checked></label>
+    <label class="tog"><span><span class="tt">Binaural (experimental)</span><span class="td" style="display:block;">La evidencia es débil y mixta. Apagado por defecto; si lo activas, es suave y con audífonos.</span></span><input type="checkbox" id="optBinaural"></label>
+    <label class="tog"><span><span class="tt">Voz guía en español</span><span class="td" style="display:block;">Frases breves al dormir y al despertar. Apagada por defecto para no sobresaltar.</span></span><input type="checkbox" id="optVoice"></label>
+
+    <div class="calib" id="calibHint"></div>
+
+    <div class="ios-tip" id="iosTip">
+      📱 <strong>Para pantalla bloqueada:</strong> En Safari, toca
+      <strong>Compartir → Agregar a pantalla de inicio</strong>.
+      Luego abre la app instalada. Esto permite que el audio continúe con la pantalla apagada.
+    </div>
+
+    <button class="go-btn" id="startBtn">Dormir ahora</button>
   </div>
 </div>
 
@@ -245,7 +325,7 @@ body.bo #sA{opacity:0;}
 
 <div class="screen hidden" id="sA">
   <div class="wrap">
-    <div class="logo" style="margin-bottom:11px;">SSEE VITA · Sesión activa</div>
+    <span class="logo" style="margin-bottom:11px;">SSEE VITA · Sesión activa</span>
     <div class="rw">
       <svg class="rs" viewBox="0 0 185 185">
         <circle class="rt" cx="92.5" cy="92.5" r="83"/>
@@ -253,273 +333,302 @@ body.bo #sA{opacity:0;}
       </svg>
       <div class="ri">
         <div class="rtime" id="clockEl">—</div>
-        <div class="rcyc" id="cycleEl">CICLO 1</div>
+        <span class="rcyc" id="cycleEl">DURMIÉNDOTE</span>
       </div>
     </div>
     <div class="pc">
-      <div class="pn" id="phaseNameEl">RELAJACIÓN</div>
-      <div class="pd" id="phaseDescEl">Alfa → Theta</div>
+      <span class="pn" id="phaseNameEl">RELAJACIÓN</span>
+      <span class="pd" id="phaseDescEl">Respira… el ambiente te acompaña a dormir</span>
       <div class="pt"><div class="pf" id="phaseBarEl"></div></div>
     </div>
     <div class="st">
-      <div class="sb"><div class="sv" id="hzEl">10<span class="u"> Hz</span></div><div class="sk">Ondas</div></div>
-      <div class="sb"><div class="sv" id="cycNumEl">1/—</div><div class="sk">Ciclo</div></div>
-      <div class="sb"><div class="sv" id="wakeEl">—</div><div class="sk">Despertar</div></div>
+      <div class="sb"><span class="sv" id="cycNumEl">—</span><span class="sk">Ciclo</span></div>
+      <div class="sb"><span class="sv" id="wakeEl">—</span><span class="sk">Despertar</span></div>
+      <div class="sb"><span class="sv" id="backupEl">—</span><span class="sk">Respaldo</span></div>
     </div>
     <canvas id="wc"></canvas>
     <div class="vb" id="voiceEl">…</div>
-    <div class="bg-status" id="bgStatus">🎵 Audio activo</div>
-    <div class="th">Toca para oscurecer · Pantalla se puede apagar</div>
+    <span class="bg-status" id="bgStatus">🎵 Audio activo</span>
+    <div class="mini-row">
+      <button class="mini-btn" id="wakeNowBtn" type="button">Ya desperté</button>
+      <button class="mini-btn" id="stopBtn" type="button">Terminar</button>
+    </div>
+    <span class="th">Toca el fondo para oscurecer · La pantalla se puede apagar</span>
   </div>
 </div>
 
 <!-- WAKE -->
 
 <div class="screen hidden" id="sW">
-  <div class="worb">☀️</div>
-  <div class="wt">Buenos días</div>
-  <div class="wm">Has completado tu sesión de sueño.<br>Φ + π te acompañó esta noche.</div>
-  <button class="rbtn" id="restartBtn">Nueva sesión</button>
+  <div class="wrap">
+    <div class="worb">☀️</div>
+    <span class="wt">Buenos días</span>
+    <div class="wm">Tu ciclo terminó. Antes de levantarte del todo:<br>el recuerdo del sueño se va en minutos, captúralo ahora.</div>
+    <div class="dream-box">
+      <span class="field-lbl">¿Qué soñaste?</span>
+      <textarea id="dreamText" placeholder="Cuéntalo con tus palabras, aunque sea en fragmentos…"></textarea>
+      <div class="dream-quick">
+        <div class="dq" id="dreamWhiteBtn">Soñé algo, no recuerdo qué</div>
+        <div class="dq" id="dreamNoneBtn">No lo recuerdo</div>
+      </div>
+      <div class="dream-actions">
+        <button class="dbtn primary" id="saveDreamBtn" type="button">Guardar</button>
+        <button class="dbtn ghost" id="copyDreamBtn" type="button">Copiar</button>
+        <button class="dbtn ghost" id="shareDreamBtn" type="button" style="display:none;">Compartir</button>
+      </div>
+      <div class="wmsg" id="wakeSavedMsg"></div>
+      <div class="dlog" id="dreamLog"></div>
+    </div>
+    <button class="rbtn" id="restartBtn" type="button">Nueva sesión</button>
+  </div>
 </div>
 
 <script>
 // ═══════════════════════════════════════════════════════════════
-//  SSEE VITA v7 — Con soporte de audio en background para iOS
+//  SSEE VITA v2 — Alarma natural por fin de ciclo
 //
-//  SOLUCIÓN DE BACKGROUND AUDIO:
-//  [ref: soledad penadés 2024] — AudioElement sí continúa con
-//  pantalla bloqueada en iOS; Web Audio API solo, no.
-//  [ref: progressier.com 2026] — Media Session API + <audio>
-//  permite aparecer en lock screen de iOS/Android.
-//  [ref: dbushell.com 2023] — iOS Safari 16.4+ soporta
-//  Media Session API correctamente.
+//  BASE (investigacion.md, 2026-10-03):
+//  · Ciclo real 90,1 ± 24,9 min (Rosenblum et al., eLife 2024);
+//    mediana 96, primer ciclo más corto (Cajochen 2024)
+//    → ciclo personal configurable 80–110, default 90.
+//  · Latencia normal 10–30 min (Lichstein 2003); 15 = convención
+//    → latencia configurable 5–45, los ciclos cuentan desde
+//    que te duermes, no desde «Dormir ahora».
+//  · Recuerdo REM 81,9% vs NREM 43,0% (Nielsen 2000) y el
+//    recuerdo se pierde en minutos tras el REM (Dement &
+//    Kleitman 1957) → despertar al fin de ciclo estimado y
+//    captura inmediata del sueño.
+//  · Rampa 30 min (amanecer luminoso: Giménez 2010; la parte
+//    sonora es hipótesis razonable, no detección de fase).
+//  · Acordes ancla en entonación justa (Plomp & Levelt 1965;
+//    Sethares 1993); sin gotas (pico auditivo 2–5 kHz);
+//    ruido rosa largo sin loop audible (Pressnitzer 2010);
+//    pájaros solo en inducción y amanecer; binaural opcional.
 //
-//  TÉCNICA:
-//  1. Generar un tono de 20Hz (infrasonido — inaudible) como WAV
-//     y asignarlo al <audio> element — mantiene proceso iOS vivo
-//  2. Registrar Media Session con metadata SSEE VITA
-//  3. Listener de visibilitychange para reactivar AudioContext
-//  4. Instrucción de instalación PWA en setup screen
+//  HEREDADO DE v1 (funciona, no se toca la idea): ancla <audio>
+//  20 Hz + Media Session + visibilitychange para iOS.
 // ═══════════════════════════════════════════════════════════════
 
-const PHI = 1.6180339887;
-const PI  = Math.PI;
+const PI = Math.PI;
+const ROOT = 108; // A2 — raíz de la entonación justa de VITA
 
-// ── Coeficientes de Fourier para piano ───────────────────────
-const PIANO_REAL = new Float32Array([0,1.0,0.45,0.18,0.12,0.08,0.05,0.04,0.025,0.018,0.012,0.008,0.005]);
-const PIANO_IMAG = new Float32Array(PIANO_REAL.length);
+// Progresión ancla I–vi–IV–I en entonación justa (razones vs ROOT)
+// I  = A·C♯·E  (1, 5/4, 3/2) · vi = F♯·A·C♯ (5/3, 2, 5/2) · IV = D·F♯·A (4/3, 5/3, 2)
+const CHORDS = [
+  [1, 5/4, 3/2],
+  [5/3, 2, 5/2],
+  [4/3, 5/3, 2],
+  [1, 5/4, 3/2]
+];
 
-// ── Escalas ───────────────────────────────────────────────────
-const SCALE_RELAX = [108,144,162,192,216,288,324,384,432,576,648,768];
-const SCALE_WAKE  = [432,484.9,544.29,576,648,727.87,816.49,864,972,1093,1152];
+// ── Ajustes persistidos (localStorage) ────────────────────────
+const DEF_SET = { deadline:'06:30', latency:15, cycle:90, volume:70, ambient:'rain', birds:true, binaural:false, voice:false };
+let SET = { ...DEF_SET };
+try { const s = JSON.parse(localStorage.getItem('vita2_settings')); if (s) SET = { ...DEF_SET, ...s }; } catch(e) {}
+function saveSettings(){ try { localStorage.setItem('vita2_settings', JSON.stringify(SET)); } catch(e) {} }
+function loadList(key){ try { return JSON.parse(localStorage.getItem(key)) || []; } catch(e) { return []; } }
+function saveList(key, arr){ try { localStorage.setItem(key, JSON.stringify(arr.slice(-60))); } catch(e) {} }
 
-// ── Estado ────────────────────────────────────────────────────
-let AC, masterGain, reverbNode, pianoWave;
-let binL, binR, binGainL, binGainR;
-let wakeDate, startTime;
-let selectedSound = 'rain';
-let animId, voiceOn = false;
-let narrated = new Set(), wakeNarrated = new Set();
-let currentPhase = '', melodyOn = false;
-let stochasticTmr = null, ambGainNode = null;
+// ── Helpers ───────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const pad2 = n => String(n).padStart(2,'0');
+const fmtTime = ms => { const d = new Date(ms); return pad2(d.getHours()) + ':' + pad2(d.getMinutes()); };
+function fmtDur(min){ min = Math.round(min); const h = Math.floor(min/60), m = min%60; return h > 0 ? (h + ' h ' + (m ? pad2(m) + ' min' : '').trim()).trim() : m + ' min'; }
+function fmtCountdown(ms){ if (ms < 0) ms = 0; const s = Math.floor(ms/1000); return pad2(Math.floor(s/3600)) + ':' + pad2(Math.floor(s%3600/60)) + ':' + pad2(s%60); }
+const smooth = p => p*p*(3-2*p);
 
-// ── UI selectors ──────────────────────────────────────────────
-document.querySelectorAll('.snd').forEach(b => {
-  b.addEventListener('click', () => {
-    document.querySelectorAll('.snd').forEach(x => x.classList.remove('on'));
-    b.classList.add('on');
-    selectedSound = b.dataset.s;
+// ── Plan de la noche ──────────────────────────────────────────
+// Devuelve opciones de fin de ciclo: dormirte (ahora+latencia)
+// + N × ciclo, sin pasar la hora límite (techo, no instante).
+let PLAN = null;       // {startMs, sleepMs, deadlineMs, options:[{n,wakeMs}], selected}
+let selectedN = null;
+
+function deadlineDate(now){
+  const [h,m] = SET.deadline.split(':').map(Number);
+  const d = new Date(now); d.setHours(h||6, m||0, 0, 0);
+  if (d.getTime() <= now) d.setDate(d.getDate()+1);
+  return d.getTime();
+}
+
+function computePlan(now){
+  const sleepMs = now + SET.latency*60000;
+  const dl = deadlineDate(now);
+  const options = [];
+  for (let n = 1; n <= 9; n++){
+    const wake = sleepMs + n*SET.cycle*60000;
+    if (wake <= dl) options.push({ n, wakeMs: wake });
+  }
+  let over = false;
+  if (!options.length){ options.push({ n:1, wakeMs: sleepMs + SET.cycle*60000 }); over = true; }
+  // Recomendado: el de más sueño total sin pasar el techo (≈8 h manda si cabe)
+  let rec = options[options.length-1];
+  for (const o of options){ if (Math.abs(o.n*SET.cycle - 480) < Math.abs(rec.n*SET.cycle - 480)) rec = o; }
+  if (selectedN == null || !options.some(o => o.n === selectedN)) selectedN = rec.n;
+  const sel = options.find(o => o.n === selectedN);
+  const backupMs = over || dl <= sel.wakeMs ? sel.wakeMs + 5*60000 : dl;
+  return { startMs: now, sleepMs, deadlineMs: dl, options, selected: sel, backupMs, overDeadline: over };
+}
+
+function renderPlan(){
+  PLAN = computePlan(Date.now());
+  const sel = PLAN.selected;
+  const totalMin = sel.n * SET.cycle;
+  const rampMs = sel.wakeMs - 30*60000;
+  let html = 'Si te duermes ~<strong>' + fmtTime(PLAN.sleepMs) + '</strong>, tu ciclo ' +
+    sel.n + ' termina a las <strong>' + fmtTime(sel.wakeMs) + '</strong> (' + fmtDur(totalMin) + ' de sueño). ' +
+    'Rampa gradual <strong>' + fmtTime(rampMs) + ' → ' + fmtTime(sel.wakeMs) + '</strong>. ' +
+    'Respaldo si sigues dormido: <strong>' + fmtTime(PLAN.backupMs) + '</strong>.';
+  if (PLAN.overDeadline) html += '<br>⚠ Ni un ciclo cabe antes de tu hora límite: este fin de ciclo la pasa.';
+  html += '<div class="chips">' + PLAN.options.map(o =>
+    '<span class="chip' + (o.n === sel.n ? ' on' : '') + '" data-n="' + o.n + '">' +
+    o.n + ' ciclos · ' + fmtTime(o.wakeMs) + '</span>').join('') + '</div>';
+  $('planOut').innerHTML = html;
+  document.querySelectorAll('#planOut .chip').forEach(c => {
+    c.addEventListener('click', () => { selectedN = Number(c.dataset.n); renderPlan(); });
   });
-});
+  renderCalibHint();
+}
 
-// Ocultar tip de iOS si ya está instalada como PWA
-if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) {
-  const tip = document.getElementById('iosTip');
-  if (tip) tip.style.display = 'none';
+function renderCalibHint(){
+  const nights = loadList('vita2_nights');
+  const el = $('calibHint');
+  if (!el) return;
+  if (!nights.length){ el.textContent = ''; return; }
+  const rec = nights.filter(n => n.remembered === 'si').length;
+  el.textContent = 'Llevas ' + nights.length + ' noche(s) registrada(s) en este teléfono (' + rec + ' con sueño recordado). ' +
+    'Tras 7–14 noches: si despiertas pesado antes de la rampa, prueba ciclo +5 min; si te despiertas solo antes, −5 min.';
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  BLOQUE A: GENERACIÓN DE AUDIO ANCHOR PARA iOS
-//
-//  Generamos un WAV con un tono de 20Hz (infrasonido — inaudible
-//  para humanos) que el <audio> element reproduce en loop.
-//  Esto hace que iOS mantenga el proceso del navegador activo
-//  con la pantalla bloqueada.
-//  [ref: soledad penadés 2024 — AudioElement vs Web Audio en iOS]
+//  BLOQUE A: AUDIO ANCHOR PARA iOS (heredado de v1)
+//  WAV 20 Hz inaudible en loop en un <audio> real: mantiene el
+//  proceso vivo con la pantalla bloqueada.
 // ═══════════════════════════════════════════════════════════════
 function generate20HzWAV() {
-  // Generar 2 segundos de tono 20Hz a 44100Hz
-  const sampleRate = 22050;
-  const duration   = 2;
-  const numSamples = sampleRate * duration;
-  const freq       = 20; // Hz — infrasonido, inaudible
-
-  // WAV header (44 bytes) + data
+  const sampleRate = 22050, duration = 2;
+  const numSamples = sampleRate * duration, freq = 20;
   const buffer = new ArrayBuffer(44 + numSamples * 2);
-  const view   = new DataView(buffer);
-
-  // RIFF chunk
-  const writeStr = (offset, str) => {
-    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
-  };
-  writeStr(0, 'RIFF');
-  view.setUint32(4, 36 + numSamples * 2, true);
-  writeStr(8, 'WAVE');
-  writeStr(12, 'fmt ');
-  view.setUint32(16, 16, true);   // chunk size
-  view.setUint16(20, 1, true);    // PCM
-  view.setUint16(22, 1, true);    // mono
-  view.setUint32(24, sampleRate, true);
-  view.setUint32(28, sampleRate * 2, true);
-  view.setUint16(32, 2, true);    // block align
-  view.setUint16(34, 16, true);   // bits per sample
-  writeStr(36, 'data');
-  view.setUint32(40, numSamples * 2, true);
-
-  // Samples: tono sinusoidal a 20Hz, amplitud MUY baja (0.001)
+  const view = new DataView(buffer);
+  const writeStr = (offset, str) => { for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i)); };
+  writeStr(0, 'RIFF'); view.setUint32(4, 36 + numSamples * 2, true);
+  writeStr(8, 'WAVE'); writeStr(12, 'fmt ');
+  view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true); view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+  writeStr(36, 'data'); view.setUint32(40, numSamples * 2, true);
   for (let i = 0; i < numSamples; i++) {
     const sample = Math.sin(2 * PI * freq * i / sampleRate) * 0.001;
     view.setInt16(44 + i * 2, sample * 32767, true);
   }
-
-  const blob = new Blob([buffer], { type: 'audio/wav' });
-  return URL.createObjectURL(blob);
+  return URL.createObjectURL(new Blob([buffer], { type: 'audio/wav' }));
 }
-
 function setupIOSAnchor() {
-  const audioEl = document.getElementById('iosAnchor');
-  audioEl.src   = generate20HzWAV();
-  audioEl.loop  = true;
+  const audioEl = $('iosAnchor');
+  audioEl.src = generate20HzWAV();
+  audioEl.loop = true;
   return audioEl;
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  BLOQUE B: MEDIA SESSION API
-//  [ref: MDN Media Session API, web.dev 2024]
-//  Registra SSEE VITA con el OS de iOS/Android como sesión
-//  de audio activa. Esto es lo que hace aparecer los controles
-//  en la pantalla de bloqueo y mantiene el proceso vivo.
+//  BLOQUE B: MEDIA SESSION (heredado de v1)
 // ═══════════════════════════════════════════════════════════════
 function setupMediaSession() {
   if (!('mediaSession' in navigator)) return;
-
   navigator.mediaSession.metadata = new MediaMetadata({
-    title:  'SSEE VITA — Sueño Activo',
-    artist: 'Sistema de Sincronía · Φ + π',
-    album:  'Sesión de Sueño',
-    // Artwork generado en canvas para evitar el problema de tamaño
-    // [ref: dbushell.com 2023 — canvas toBlob para iOS 16.4+]
+    title: 'SSEE VITA — Sueño Activo',
+    artist: 'Alarma natural por fin de ciclo',
+    album: 'Sesión de Sueño',
     artwork: [{ src: generateArtwork(512), sizes: '512x512', type: 'image/png' }]
   });
-
   navigator.mediaSession.playbackState = 'playing';
-
-  // Handlers para controles de lock screen
   navigator.mediaSession.setActionHandler('play', () => {
     if (AC && AC.state === 'suspended') AC.resume();
     navigator.mediaSession.playbackState = 'playing';
   });
   navigator.mediaSession.setActionHandler('pause', () => {
-    navigator.mediaSession.playbackState = 'playing'; // No pausar — es alarma de sueño
+    navigator.mediaSession.playbackState = 'playing'; // No pausar — es una alarma de sueño
   });
-  // Sin skip — no tiene sentido en este contexto
 }
-
 function generateArtwork(size) {
-  // Genera un canvas con el logo SSEE VITA como artwork
-  const canvas  = document.createElement('canvas');
-  canvas.width  = size; canvas.height = size;
-  const ctx     = canvas.getContext('2d');
-
-  // Fondo
-  const grad = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
-  grad.addColorStop(0, '#000000');
-  grad.addColorStop(1, '#000000');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, size, size);
-
-  // Círculo exterior (ring)
-  ctx.strokeStyle = 'rgba(124,110,224,0.6)';
-  ctx.lineWidth   = size * 0.025;
-  ctx.beginPath();
-  ctx.arc(size/2, size/2, size * 0.38, 0, PI * 2);
-  ctx.stroke();
-
-  // Punto interior brillante
+  const canvas = document.createElement('canvas');
+  canvas.width = size; canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, size, size);
+  ctx.strokeStyle = 'rgba(124,110,224,0.6)'; ctx.lineWidth = size * 0.025;
+  ctx.beginPath(); ctx.arc(size/2, size/2, size * 0.38, 0, PI * 2); ctx.stroke();
   const innerGrad = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size*0.12);
-  innerGrad.addColorStop(0, 'rgba(0,212,170,0.9)');
-  innerGrad.addColorStop(1, 'rgba(124,110,224,0.3)');
+  innerGrad.addColorStop(0, 'rgba(0,212,170,0.9)'); innerGrad.addColorStop(1, 'rgba(124,110,224,0.3)');
   ctx.fillStyle = innerGrad;
-  ctx.beginPath();
-  ctx.arc(size/2, size/2, size * 0.12, 0, PI * 2);
-  ctx.fill();
-
-  // Texto
-  ctx.fillStyle = 'rgba(255,255,255,0.85)';
-  ctx.font      = `${size * 0.07}px monospace`;
-  ctx.textAlign = 'center';
+  ctx.beginPath(); ctx.arc(size/2, size/2, size * 0.12, 0, PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.font = (size * 0.07) + 'px monospace'; ctx.textAlign = 'center';
   ctx.fillText('SSEE VITA', size/2, size * 0.62);
-  ctx.fillStyle = 'rgba(0,212,170,0.6)';
-  ctx.font      = `${size * 0.045}px monospace`;
+  ctx.fillStyle = 'rgba(0,212,170,0.6)'; ctx.font = (size * 0.045) + 'px monospace';
   ctx.fillText('Φ + π', size/2, size * 0.72);
-
   return canvas.toDataURL('image/png');
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  BLOQUE C: REACTIVACIÓN EN VISIBILITYCHANGE
-//  Cuando el usuario vuelve a la app desde background,
-//  el AudioContext puede estar suspendido — hay que reactivarlo.
+//  BLOQUE C: VISIBILIDAD + WAKE LOCK
 // ═══════════════════════════════════════════════════════════════
+let wakeLock = null;
+async function grabWakeLock(){
+  try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
+}
 function setupVisibilityHandler() {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && AC) {
       if (AC.state === 'suspended') {
         AC.resume().then(() => {
           updateBgStatus('🎵 Audio activo');
-          if ('mediaSession' in navigator) {
-            navigator.mediaSession.playbackState = 'playing';
-          }
+          if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
         });
       }
+      grabWakeLock();
     } else if (document.visibilityState === 'hidden') {
-      // Cuando va a background: asegurar que el anchor sigue
-      const anchor = document.getElementById('iosAnchor');
-      if (anchor && anchor.paused) {
-        anchor.play().catch(() => {});
-      }
+      const anchor = $('iosAnchor');
+      if (anchor && anchor.paused) anchor.play().catch(() => {});
       updateBgStatus('🔒 Corriendo en fondo');
     }
   });
 }
-
-function updateBgStatus(text) {
-  const el = document.getElementById('bgStatus');
-  if (el) el.textContent = text;
-}
+function updateBgStatus(text) { const el = $('bgStatus'); if (el) el.textContent = text; }
 
 // ═══════════════════════════════════════════════════════════════
-//  BLOQUES DE AUDIO (idénticos a v6, probados)
+//  BLOQUE D: AUDIO — estado
 // ═══════════════════════════════════════════════════════════════
+let AC = null, masterGain = null, reverbNode = null;
+let binL = null, binR = null, binGainL = null, binGainR = null;
+let tickTimer = null;
+let chordIdx = 0, nextChordAt = 0, nextMelodyAt = 0, nextBirdAt = 0;
+let currentPhase = '', rampStarted = false, wakeShown = false;
+let lastChimeAt = 0, narrated = new Set(), wakeNarrated = new Set();
+let tonight = null; // referencia a la entrada de esta noche en vita2_nights
+
+function volNight(){ return (SET.volume/100) * 0.45; }
+function volWake(){ return SET.volume/100; }
 
 function buildReverb(ac) {
   const rate = ac.sampleRate, dur = 2.5;
-  const buf  = ac.createBuffer(2, rate*dur, rate);
-  for (let ch=0;ch<2;ch++){
-    const d=buf.getChannelData(ch);
-    for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,1.9)*0.5;
+  const buf = ac.createBuffer(2, rate*dur, rate);
+  for (let ch = 0; ch < 2; ch++){
+    const d = buf.getChannelData(ch);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/d.length, 1.9) * 0.5;
   }
-  const n=ac.createConvolver(); n.buffer=buf; return n;
+  const n = ac.createConvolver(); n.buffer = buf; return n;
 }
 
-function buildPinkNoise(ac) {
-  const rate=ac.sampleRate, len=rate*5;
-  const buf=ac.createBuffer(2,len,rate);
-  for(let ch=0;ch<2;ch++){
-    const d=buf.getChannelData(ch);
+// Ruido rosa (Paul Kellett) en buffer LARGO de 48 s: con dos capas
+// decorreladas y LFOs de periodos coprimos, el patrón no se repite
+// de forma detectable (el oído memoriza un loop en 2–10 pasadas —
+// Pressnitzer 2010; por eso murió el loop de 5 s de v1).
+function buildPinkBuffer(ac) {
+  const rate = ac.sampleRate, len = rate * 48;
+  const buf = ac.createBuffer(2, len, rate);
+  for (let ch = 0; ch < 2; ch++){
+    const d = buf.getChannelData(ch);
     let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
-    for(let i=0;i<len;i++){
-      const w=Math.random()*2-1;
+    for (let i = 0; i < len; i++){
+      const w = Math.random()*2-1;
       b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
       b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
       b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
@@ -527,343 +636,487 @@ function buildPinkNoise(ac) {
       b6=w*0.115926;
     }
   }
-  const src=ac.createBufferSource(); src.buffer=buf; src.loop=true; return src;
+  return buf;
 }
 
-function startAmbient(ac,type,dest){
-  const noise=buildPinkNoise(ac);
-  const filt=ac.createBiquadFilter();
-  const gain=ac.createGain();
-  ambGainNode=gain;
-  gain.gain.setValueAtTime(0,ac.currentTime);
-  if(type==='rain'){
-    filt.type='bandpass'; filt.frequency.value=1200; filt.Q.value=0.4;
-    const lfoF=ac.createOscillator(),lgF=ac.createGain();
-    lfoF.frequency.value=0.033; lgF.gain.value=350;
-    lfoF.connect(lgF); lgF.connect(filt.frequency); lfoF.start();
-    const lfoG=ac.createOscillator(),lgG=ac.createGain();
-    lfoG.frequency.value=0.025; lgG.gain.value=0.03;
-    lfoG.connect(lgG); lgG.connect(gain.gain); lfoG.start();
-    gain.gain.setTargetAtTime(0.20,ac.currentTime,5);
-    startRaindrops(ac,dest);
-  } else if(type==='forest'){
-    filt.type='lowpass'; filt.frequency.value=800; filt.Q.value=0.5;
-    const lfoG=ac.createOscillator(),lgG=ac.createGain();
-    lfoG.frequency.value=0.022; lgG.gain.value=0.025;
-    lfoG.connect(lgG); lgG.connect(gain.gain); lfoG.start();
-    gain.gain.setTargetAtTime(0.12,ac.currentTime,6);
-    setTimeout(()=>scheduleForestBirds(ac,dest),8000);
-  } else if(type==='ocean'){
-    filt.type='lowpass'; filt.frequency.value=500; filt.Q.value=1.0;
-    const lfoF=ac.createOscillator(),lgF=ac.createGain();
-    lfoF.frequency.value=0.07; lgF.gain.value=250;
-    lfoF.connect(lgF); lgF.connect(filt.frequency); lfoF.start();
-    const lfoG=ac.createOscillator(),lgG=ac.createGain();
-    lfoG.frequency.value=0.07; lgG.gain.value=0.04;
-    lfoG.connect(lgG); lgG.connect(gain.gain); lfoG.start();
-    gain.gain.setTargetAtTime(0.17,ac.currentTime,7);
-  } else {
-    filt.type='lowpass'; filt.frequency.value=400;
-    gain.gain.setTargetAtTime(0.04,ac.currentTime,6);
+function lfo(ac, periodSec, depth, param, baseValue){
+  const osc = ac.createOscillator(), g = ac.createGain();
+  osc.frequency.value = 1/periodSec;
+  g.gain.value = depth;
+  osc.connect(g); g.connect(param);
+  osc.start();
+  return osc;
+}
+
+function startAmbient(ac, type){
+  const buf = buildPinkBuffer(ac);
+  const ambGain = ac.createGain();
+  ambGain.gain.value = 0;
+  ambGain.connect(masterGain); ambGain.connect(reverbNode);
+
+  const filt = ac.createBiquadFilter();
+  filt.connect(ambGain);
+
+  const layers = [];
+  const mkLayer = (rate, offset, base) => {
+    const src = ac.createBufferSource();
+    src.buffer = buf; src.loop = true; src.playbackRate.value = rate;
+    const g = ac.createGain(); g.gain.value = base;
+    src.connect(g); g.connect(filt);
+    src.start(0, offset);
+    // LFOs de ganancia con periodos coprimos (61 s y 89 s): la
+    // combinación tarda muchísimo en repetirse.
+    lfo(ac, rate === 1 ? 61 : 89, base*0.28, g.gain);
+    layers.push(src);
+  };
+  mkLayer(1.00, 0, 0.62);
+  mkLayer(0.93, 23.7, 0.45); // segunda capa desafinada y desplazada
+
+  const t = ac.currentTime;
+  if (type === 'rain'){
+    filt.type = 'bandpass'; filt.frequency.value = 1100; filt.Q.value = 0.45;
+    lfo(ac, 47, 260, filt.frequency);           // vagar lento del color
+    ambGain.gain.setTargetAtTime(0.17, t, 6);
+  } else if (type === 'forest'){
+    filt.type = 'lowpass'; filt.frequency.value = 750; filt.Q.value = 0.4;
+    lfo(ac, 53, 130, filt.frequency);
+    ambGain.gain.setTargetAtTime(0.11, t, 6);
+  } else if (type === 'ocean'){
+    filt.type = 'lowpass'; filt.frequency.value = 480; filt.Q.value = 0.9;
+    lfo(ac, 41, 190, filt.frequency);
+    lfo(ac, 97, 0.035, ambGain.gain);           // oleaje lento
+    ambGain.gain.setTargetAtTime(0.15, t, 7);
+  } else { // pure
+    filt.type = 'lowpass'; filt.frequency.value = 300;
+    ambGain.gain.setTargetAtTime(0.035, t, 6);
   }
-  noise.connect(filt); filt.connect(gain);
-  gain.connect(reverbNode); gain.connect(dest);
-  noise.start();
 }
 
-function startRaindrops(ac,dest){
-  if(!AC) return;
-  const t=ac.currentTime, freq=800+Math.random()*2200, dur=0.02+Math.random()*0.06;
-  const osc=ac.createOscillator(),g=ac.createGain(),pan=ac.createStereoPanner();
-  osc.type='sine'; osc.frequency.value=freq;
-  pan.pan.value=(Math.random()-0.5)*1.8;
-  g.gain.setValueAtTime(0,t);
-  g.gain.linearRampToValueAtTime(0.006+Math.random()*0.004,t+0.002);
-  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
-  osc.connect(g); g.connect(pan); pan.connect(dest);
-  osc.start(t); osc.stop(t+dur+0.01);
-  setTimeout(()=>startRaindrops(ac,dest), 80+Math.random()*320);
+// Acorde ancla: notas del acorde vigente, ataque de 2,4 s, sin
+// transitorios. Armónico 2× muy bajo para dar cuerpo sin brillo.
+function playChord(when, tones, dur, volScale){
+  if (!AC) return;
+  const chordGain = AC.createGain(); chordGain.gain.value = 1;
+  chordGain.connect(masterGain); chordGain.connect(reverbNode);
+  tones.forEach(r => {
+    const f = ROOT * r;
+    const o1 = AC.createOscillator(), o2 = AC.createOscillator();
+    const g = AC.createGain(), g2 = AC.createGain();
+    o1.type = 'sine'; o1.frequency.value = f;
+    o2.type = 'sine'; o2.frequency.value = f * 2;
+    const vol = (0.030 + Math.random()*0.008) * volScale;
+    g.gain.setValueAtTime(0.0001, when);
+    g.gain.linearRampToValueAtTime(vol, when + 2.4);
+    g.gain.setValueAtTime(vol, Math.max(when + 2.4, when + dur - 6));
+    g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+    g2.gain.value = 0.16;
+    o1.connect(g); o2.connect(g2); g2.connect(g);
+    g.connect(chordGain);
+    o1.start(when); o2.start(when);
+    o1.stop(when + dur + 0.1); o2.stop(when + dur + 0.1);
+  });
 }
 
-function scheduleForestBirds(ac,dest){
-  if(!AC) return;
-  const t=ac.currentTime, freq=1000+Math.random()*1800, dur=0.25+Math.random()*0.45;
-  const osc=ac.createOscillator(),g=ac.createGain(),pan=ac.createStereoPanner();
-  osc.type='sine';
-  osc.frequency.setValueAtTime(freq,t);
-  osc.frequency.linearRampToValueAtTime(freq*(0.82+Math.random()*0.38),t+dur);
-  pan.pan.value=(Math.random()-0.5)*1.7;
-  g.gain.setValueAtTime(0,t);
-  g.gain.linearRampToValueAtTime(0.005,t+0.06);
-  g.gain.exponentialRampToValueAtTime(0.0001,t+dur+0.05);
-  osc.connect(g); g.connect(pan);
-  pan.connect(reverbNode); pan.connect(dest);
-  osc.start(t); osc.stop(t+dur+0.1);
-  setTimeout(()=>scheduleForestBirds(ac,dest),20000+Math.random()*25000);
+// Melodía escasa: SOLO notas del acorde vigente (una octava arriba),
+// ataque 1,2 s. Nada de random-walk ni díadas 9:8 sostenidas.
+function playMelodyNote(freq, vol){
+  if (!AC) return;
+  const t = AC.currentTime;
+  const o1 = AC.createOscillator(), o2 = AC.createOscillator();
+  const g = AC.createGain(), g2 = AC.createGain(), pan = AC.createStereoPanner();
+  o1.type = 'sine'; o1.frequency.value = freq;
+  o2.type = 'sine'; o2.frequency.value = freq * 2;
+  const dur = 9 + Math.random()*5;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vol, t + 1.2);
+  g.gain.setValueAtTime(vol, t + dur - 3.5);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  g2.gain.value = 0.14; pan.pan.value = (Math.random()-0.5)*0.5;
+  o1.connect(g); o2.connect(g2); g2.connect(g);
+  g.connect(pan); pan.connect(masterGain); pan.connect(reverbNode);
+  o1.start(t); o2.start(t); o1.stop(t + dur + 0.1); o2.stop(t + dur + 0.1);
 }
 
-function playNote(freq,dur,vol){
-  if(!AC||!pianoWave) return;
-  const t=AC.currentTime;
-  const osc1=AC.createOscillator(), osc2=AC.createOscillator(), osc3=AC.createOscillator();
-  osc1.setPeriodicWave(pianoWave); osc2.setPeriodicWave(pianoWave);
-  osc3.type='sine';
-  osc1.frequency.value=freq; osc2.frequency.value=freq*1.0012; osc3.frequency.value=freq*0.5;
-  const gain=AC.createGain(), gainSub=AC.createGain(), filt=AC.createBiquadFilter(), pan=AC.createStereoPanner();
-  filt.type='lowpass';
-  filt.frequency.setValueAtTime(freq*8,t);
-  filt.frequency.exponentialRampToValueAtTime(freq*1.5,t+dur*0.6);
-  gainSub.gain.value=0.15; pan.pan.value=(Math.random()-0.5)*0.45;
-  const attack=0.008, decay=0.4+Math.random()*0.2, sustain=vol*0.32, release=2.0+Math.random()*1.0;
-  gain.gain.setValueAtTime(0,t);
-  gain.gain.linearRampToValueAtTime(vol,t+attack);
-  gain.gain.exponentialRampToValueAtTime(sustain,t+attack+decay);
-  gain.gain.setValueAtTime(sustain,t+dur-release);
-  gain.gain.exponentialRampToValueAtTime(0.0001,t+dur);
-  osc3.connect(gainSub); gainSub.connect(filt);
-  osc1.connect(filt); osc2.connect(filt);
-  filt.connect(gain); gain.connect(pan);
-  pan.connect(masterGain); pan.connect(reverbNode);
-  osc1.start(t); osc2.start(t); osc3.start(t);
-  osc1.stop(t+dur+0.05); osc2.stop(t+dur+0.05); osc3.stop(t+dur+0.05);
+// Pájaro: chirrido senoidal descendente, ataque 60 ms, techo
+// 2.800 Hz. Solo inducción y amanecer (ver tick): en el núcleo
+// de la noche sería un evento alertante (2–5 kHz = pico auditivo).
+function playBird(bright){
+  if (!AC) return;
+  const t = AC.currentTime;
+  const base = bright ? 2100 + Math.random()*700 : 1750 + Math.random()*750;
+  const gainVal = bright ? 0.016 : 0.009;
+  const chirps = 1 + Math.floor(Math.random()*3);
+  for (let i = 0; i < chirps; i++){
+    const t0 = t + i * (0.28 + Math.random()*0.12);
+    const dur = 0.16 + Math.random()*0.16;
+    const o = AC.createOscillator(), g = AC.createGain(), pan = AC.createStereoPanner();
+    o.type = 'sine';
+    const f0 = Math.min(2800, base * (0.92 + Math.random()*0.16));
+    o.frequency.setValueAtTime(f0, t0);
+    o.frequency.exponentialRampToValueAtTime(f0 * 0.82, t0 + dur);
+    pan.pan.value = (Math.random()-0.5) * 1.3;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.linearRampToValueAtTime(gainVal, t0 + 0.06);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur + 0.05);
+    o.connect(g); g.connect(pan); pan.connect(masterGain); pan.connect(reverbNode);
+    o.start(t0); o.stop(t0 + dur + 0.1);
+  }
 }
 
-function scheduleRelaxMelody(){
-  if(!melodyOn||!AC) return;
-  const pool=SCALE_RELAX.slice(4,9);
-  const n1=pool[Math.floor(Math.random()*pool.length)];
-  const intervals=[1,-1,2,-2,3];
-  const idx=pool.indexOf(n1);
-  const n2=pool[Math.max(0,Math.min(pool.length-1,idx+intervals[Math.floor(Math.random()*intervals.length)]))];
-  const dur1=3.5+Math.random()*2.5, dur2=3.0+Math.random()*2.0, vol=0.055+Math.random()*0.025;
-  playNote(n1,dur1,vol);
-  setTimeout(()=>{if(melodyOn&&AC) playNote(n2,dur2,vol*0.8);},1500);
-  setTimeout(scheduleRelaxMelody, Math.max(dur1,dur2)*1000+1500+5000+Math.random()*7000);
+// Respaldo (si pasa la hora límite): tres notas justas, claras
+// pero sin transitorio duro — ataque 80 ms.
+function playChime(){
+  if (!AC) return;
+  const t = AC.currentTime;
+  [3, 3*5/4, 3*3/2].forEach((r, i) => {
+    const t0 = t + i * 0.7;
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.type = 'sine'; o.frequency.value = ROOT * r;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.linearRampToValueAtTime(0.12, t0 + 0.08);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.6);
+    o.connect(g); g.connect(masterGain); g.connect(reverbNode);
+    o.start(t0); o.stop(t0 + 1.8);
+  });
 }
 
-function scheduleDeepMelody(){
-  if(!melodyOn||!AC) return;
-  const pool=SCALE_RELAX.slice(0,4);
-  const freq=pool[Math.floor(Math.random()*pool.length)];
-  const dur=8+Math.random()*8, vol=0.02+Math.random()*0.008;
-  playNote(freq,dur,vol);
-  setTimeout(scheduleDeepMelody, dur*1000+12000+Math.random()*13000);
-}
-
-function scheduleRemMelody(){
-  if(!melodyOn||!AC) return;
-  const pool=SCALE_RELAX.slice(3,8);
-  const freq=pool[Math.floor(Math.random()*pool.length)];
-  const dur=4+Math.random()*4, vol=0.04+Math.random()*0.02;
-  playNote(freq,dur,vol);
-  setTimeout(scheduleRemMelody, dur*1000+4000+Math.random()*6000);
-}
-
-function scheduleWakeMelody(prog){
-  if(!melodyOn||!AC) return;
-  const noteIdx=Math.min(SCALE_WAKE.length-1,Math.floor(prog*SCALE_WAKE.length*0.8));
-  const pool=SCALE_WAKE.slice(noteIdx,noteIdx+4);
-  const freq=pool[Math.floor(Math.random()*pool.length)];
-  const dur=2.5+Math.random()*2.5, vol=0.04+prog*0.09;
-  playNote(freq,dur,vol);
-  const silence=Math.max(1000,3500-prog*1500+Math.random()*2000);
-  setTimeout(()=>scheduleWakeMelody(prog), dur*1000+silence);
-}
-
-function startBinaural(ac,beatHz,dest){
-  const merger=ac.createChannelMerger(2);
-  binGainL=ac.createGain(); binGainR=ac.createGain();
-  binL=ac.createOscillator(); binR=ac.createOscillator();
-  binL.type=binR.type='sine';
-  binL.frequency.value=200; binR.frequency.value=200+beatHz;
-  binGainL.gain.setValueAtTime(0,ac.currentTime);
-  binGainL.gain.linearRampToValueAtTime(0.09,ac.currentTime+25);
-  binGainR.gain.setValueAtTime(0,ac.currentTime);
-  binGainR.gain.linearRampToValueAtTime(0.09,ac.currentTime+25);
-  binL.connect(binGainL); binGainL.connect(merger,0,0);
-  binR.connect(binGainR); binGainR.connect(merger,0,1);
-  merger.connect(dest);
+// Binaural OPCIONAL (apagado por defecto; evidencia débil/mixta —
+// Ingendoh 2023). Portadora 200 Hz, ganancia baja 0,03.
+function startBinaural(ac){
+  const merger = ac.createChannelMerger(2);
+  binGainL = ac.createGain(); binGainR = ac.createGain();
+  binL = ac.createOscillator(); binR = ac.createOscillator();
+  binL.type = binR.type = 'sine';
+  binL.frequency.value = 200; binR.frequency.value = 204;
+  binGainL.gain.setValueAtTime(0.0001, ac.currentTime);
+  binGainL.gain.linearRampToValueAtTime(0.03, ac.currentTime + 25);
+  binGainR.gain.setValueAtTime(0.0001, ac.currentTime);
+  binGainR.gain.linearRampToValueAtTime(0.03, ac.currentTime + 25);
+  binL.connect(binGainL); binGainL.connect(merger, 0, 0);
+  binR.connect(binGainR); binGainR.connect(merger, 0, 1);
+  merger.connect(masterGain);
   binL.start(); binR.start();
 }
-
-function setBinaural(beatHz){
-  if(!binR) return;
-  binR.frequency.setTargetAtTime(200+beatHz,AC.currentTime,20);
+function setBinauralBeat(hz){
+  if (!binR || !AC) return;
+  binR.frequency.setTargetAtTime(200 + hz, AC.currentTime, 20);
 }
 
-function scheduleVariation(){
-  if(!AC||!ambGainNode) return;
-  const cur=ambGainNode.gain.value, target=cur*(0.85+Math.random()*0.3);
-  ambGainNode.gain.setTargetAtTime(Math.max(0.03,Math.min(0.28,target)),AC.currentTime,40);
-  stochasticTmr=setTimeout(scheduleVariation,300000+Math.random()*300000);
-}
-
-const PHASES={
-  relax:{name:'RELAJACIÓN α→θ',    desc:'Alfa (10Hz) → Theta (6Hz)',       color:'#7c6ee0',bin:7, hz:10},
-  deep: {name:'SUEÑO PROFUNDO δ',  desc:'Delta (1.5-3Hz) · Reparación',    color:'#3a5acc',bin:2, hz:1.5},
-  rem:  {name:'REM / SUEÑO LIGERO',desc:'Theta (5-7Hz) · Sueño onírico',   color:'#7744bb',bin:5, hz:6},
-  wake: {name:'DESPERTAR NATURAL β',desc:'Theta→Alfa→Beta · Activación',   color:'#00c499',bin:10,hz:12},
-};
-
-function getPhase(cycPos,diffSecs){
-  if(diffSecs<1800){const p=1-diffSecs/1800;return{...PHASES.wake,hz:12+p*7,bin:10+p*9,wakeProgress:p};}
-  if(cycPos<0.20) return{...PHASES.relax,hz:10-cycPos*20};
-  if(cycPos<0.70) return PHASES.deep;
-  return{...PHASES.rem,hz:5+(cycPos-0.70)*10};
-}
-
-// Narración
-const NARR=[
-  {t:1200,  text:"Bienvenido. Cierra los ojos. Inhala lento... y exhala. Con cada respiración tu cuerpo se hace más pesado, más tranquilo."},
-  {t:180000,text:"Deja ir cualquier pensamiento. No hay nada que resolver ahora. El descanso llega solo cuando lo permites."},
-  {t:420000,text:"Estás profundamente relajado. Tu cuerpo sana. Tu mente descansa. Confía en el ciclo."},
-  {t:720000,text:"El sueño profundo hace su trabajo. Cada ciclo te regenera."},
+// Voz guía OPCIONAL (apagada por defecto para no sobresaltar).
+const NARR = [
+  { s: 60,  text: 'Cierra los ojos. Inhala lento… y exhala. El ambiente te acompaña a dormir.' },
+  { s: 300, text: 'Deja ir cualquier pensamiento. No hay nada que resolver ahora.' },
+  { s: 540, text: 'Tu cuerpo descansa. Confía en el ciclo: despertarás a su fin.' }
 ];
-const WAKE_NARR=[
-  {mins:27,text:"Tu ciclo llega a su fin. La consciencia regresa suavemente, como una luz que se enciende muy despacio."},
-  {mins:12,text:"Comienza a mover los dedos de los pies. Respira más profundo. La mañana te espera con calma."},
-  {mins:2, text:"Buenos días. Abre los ojos cuando estés listo. Has descansado bien."},
+const WAKE_NARR = [
+  { beforeMin: 27, text: 'Tu ciclo llega a su fin. La consciencia regresa suavemente, como una luz que se enciende muy despacio.' },
+  { beforeMin: 12, text: 'Comienza a mover los dedos de los pies. Respira más profundo. Y recuerda: ¿qué estabas soñando?' },
+  { beforeMin: 2,  text: 'Buenos días. Antes de abrir los ojos del todo, repasa tu sueño: luego podrás contarlo.' }
 ];
-
 function speak(text){
-  if(!voiceOn||!window.speechSynthesis) return;
+  if (!SET.voice || !window.speechSynthesis) return;
   speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(text);
-  u.lang='es-ES'; u.pitch=1.08; u.rate=0.68; u.volume=0.70;
-  const vcs=speechSynthesis.getVoices();
-  const best=vcs.find(v=>v.lang.startsWith('es')&&/female|mujer|woman/i.test(v.name))||vcs.find(v=>v.lang.startsWith('es'))||null;
-  if(best) u.voice=best;
-  u.onstart=()=>{const el=document.getElementById('voiceEl');if(el)el.textContent=`"${text}"`;};
-  u.onend=()=>{setTimeout(()=>{const el=document.getElementById('voiceEl');if(el)el.textContent='…';},5000);};
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'es-ES'; u.pitch = 1.05; u.rate = 0.72; u.volume = 0.7;
+  const vcs = speechSynthesis.getVoices();
+  const best = vcs.find(v => v.lang.startsWith('es') && /female|mujer|woman/i.test(v.name)) || vcs.find(v => v.lang.startsWith('es')) || null;
+  if (best) u.voice = best;
+  u.onstart = () => { const el = $('voiceEl'); if (el) el.textContent = '“' + text + '”'; };
+  u.onend = () => { setTimeout(() => { const el = $('voiceEl'); if (el) el.textContent = '…'; }, 6000); };
   speechSynthesis.speak(u);
 }
 
-// Wave canvas
-const canvas=document.getElementById('wc'), c2d=canvas.getContext('2d');
-let wPh=0;
-function resizeCanvas(){const dpr=window.devicePixelRatio||1;canvas.width=canvas.offsetWidth*dpr;canvas.height=canvas.offsetHeight*dpr;c2d.scale(dpr,dpr);}
-function drawWave(hz,col){
-  const W=canvas.offsetWidth,H=canvas.offsetHeight;
-  c2d.clearRect(0,0,W,H);
-  const cycles=Math.max(0.3,Math.min(hz*0.5,5));
-  c2d.strokeStyle=col;c2d.lineWidth=1.1;c2d.shadowColor=col;c2d.shadowBlur=4;c2d.globalAlpha=0.45;
+// Onda decorativa del anillo
+const canvas = $('wc'), c2d = canvas.getContext('2d');
+let wPh = 0;
+function resizeCanvas(){ const dpr = window.devicePixelRatio || 1; canvas.width = canvas.offsetWidth * dpr; canvas.height = canvas.offsetHeight * dpr; c2d.setTransform(dpr, 0, 0, dpr, 0, 0); }
+function drawWave(speed, col){
+  if (!canvas.offsetWidth) return;
+  const W = canvas.offsetWidth, H = canvas.offsetHeight;
+  c2d.clearRect(0, 0, W, H);
+  c2d.strokeStyle = col; c2d.lineWidth = 1.1; c2d.shadowColor = col; c2d.shadowBlur = 4; c2d.globalAlpha = 0.45;
   c2d.beginPath();
-  for(let x=0;x<=W;x++){const y=H/2+Math.sin((x/W)*cycles*2*PI+wPh)*(H*0.28);x===0?c2d.moveTo(x,y):c2d.lineTo(x,y);}
-  c2d.stroke();c2d.globalAlpha=1;
-  wPh+=hz<2.5?0.004:hz<7?0.013:0.024;
+  for (let x = 0; x <= W; x++){ const y = H/2 + Math.sin((x/W) * 2 * 2 * PI + wPh) * (H * 0.28); x === 0 ? c2d.moveTo(x, y) : c2d.lineTo(x, y); }
+  c2d.stroke(); c2d.globalAlpha = 1;
+  wPh += speed * 0.02;
 }
 
-// Engine
-function engine(){
-  const diff=(wakeDate-new Date())/1000;
-  if(diff<=0){goTo('sW');return;}
-  const elapsed=(Date.now()-startTime)/1000;
-  const CYCLE=5400, cycleNum=Math.floor(elapsed/CYCLE)+1;
-  const cyclePos=(elapsed%CYCLE)/CYCLE;
-  const totalCyc=Math.max(1,Math.ceil((wakeDate-new Date(startTime))/1000/CYCLE));
-  const phase=getPhase(cyclePos,diff);
-  if(phase.name!==currentPhase){
-    currentPhase=phase.name; setBinaural(phase.bin);
-    melodyOn=false;
-    setTimeout(()=>{
-      melodyOn=true;
-      if(phase.name===PHASES.deep.name) scheduleDeepMelody();
-      else if(phase.name.includes('DESPERTAR')) scheduleWakeMelody(phase.wakeProgress||0);
-      else if(phase.name===PHASES.rem.name) scheduleRemMelody();
-      else scheduleRelaxMelody();
-    },1000);
+// ═══════════════════════════════════════════════════════════════
+//  BLOQUE E: MOTOR DE SESIÓN
+//  Fases = ESTIMACIÓN por posición en el ciclo (sin sensores no
+//  se puede «detectar» nada: macro-F1 de trackers con sensor
+//  llega solo a 0,69). La rampa de 30 min termina en el fin de
+//  ciclo elegido y va como curva sobre el AudioParam: sigue
+//  sonando aunque iOS estrangule el JS con pantalla bloqueada.
+// ═══════════════════════════════════════════════════════════════
+const PHASE_INFO = {
+  relax: { name:'RELAJACIÓN', desc:'Respira… el ambiente te acompaña a dormir', color:'#7c6ee0', beat:5, wave:1.1 },
+  deep:  { name:'SUEÑO PROFUNDO (ESTIMADO)', desc:'Zona estimada de sueño profundo · solo acordes', color:'#3a5acc', beat:2, wave:0.5 },
+  light: { name:'SUEÑO LIGERO · REM (ESTIMADO)', desc:'Zona estimada de sueño ligero: aquí viven los sueños', color:'#7744bb', beat:5, wave:1.6 },
+  wake:  { name:'DESPERTAR GRADUAL', desc:'Rampa de 30 min hacia el fin de tu ciclo', color:'#00c499', beat:10, wave:2.2 }
+};
+
+function goTo(id){ document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden')); $(id).classList.remove('hidden'); }
+
+function phaseAt(now){
+  const sel = PLAN.selected;
+  if (now >= sel.wakeMs - 30*60000) return 'wake';
+  if (now < PLAN.sleepMs) return 'relax';
+  const pos = ((now - PLAN.sleepMs) % (SET.cycle*60000)) / (SET.cycle*60000);
+  return pos < 0.35 ? 'deep' : 'light';
+}
+
+function startRamp(){
+  rampStarted = true;
+  if (!AC || !masterGain || !PLAN) return;
+  const t = AC.currentTime;
+  const dur = Math.max(60, (PLAN.selected.wakeMs - Date.now()) / 1000);
+  const night = volNight(), wake = volWake();
+  const N = 48, curve = new Float32Array(N);
+  for (let i = 0; i < N; i++){ const p = i/(N-1); curve[i] = night + (wake - night) * smooth(Math.pow(p, 1.25)); }
+  masterGain.gain.cancelScheduledValues(t);
+  masterGain.gain.setValueAtTime(masterGain.gain.value, t);
+  masterGain.gain.setValueCurveAtTime(curve, t, dur);
+  if ('mediaSession' in navigator && navigator.mediaSession.metadata) navigator.mediaSession.metadata.title = 'SSEE VITA — Despertando';
+}
+
+function tick(){
+  if (!AC || !PLAN || wakeShown) return;
+  const now = Date.now();
+  const sel = PLAN.selected;
+  const phase = phaseAt(now);
+  if (phase === 'wake' && !rampStarted) startRamp();
+  const info = PHASE_INFO[phase];
+  if (phase !== currentPhase){ currentPhase = phase; setBinauralBeat(info.beat); }
+
+  // ── UI ──
+  $('clockEl').textContent = fmtCountdown(sel.wakeMs - now);
+  const prog = Math.min(1, Math.max(0, (now - PLAN.startMs) / (sel.wakeMs - PLAN.startMs)));
+  $('ringArc').style.strokeDashoffset = 521 - prog * 521;
+  $('ringArc').style.stroke = info.color;
+  let barPct;
+  if (phase === 'relax') barPct = (now - PLAN.startMs) / Math.max(1, PLAN.sleepMs - PLAN.startMs);
+  else if (phase === 'wake') barPct = (now - (sel.wakeMs - 30*60000)) / (30*60000);
+  else barPct = ((now - PLAN.sleepMs) % (SET.cycle*60000)) / (SET.cycle*60000);
+  $('phaseBarEl').style.width = (Math.min(1, Math.max(0, barPct)) * 100) + '%';
+  $('phaseNameEl').textContent = info.name;
+  $('phaseNameEl').style.color = info.color;
+  $('phaseDescEl').textContent = info.desc;
+  const cycNow = now < PLAN.sleepMs ? 0 : Math.min(sel.n, Math.floor((now - PLAN.sleepMs) / (SET.cycle*60000)) + 1);
+  $('cycNumEl').textContent = cycNow ? (cycNow + '/' + sel.n) : '—';
+  $('cycleEl').textContent = phase === 'relax' ? 'DURMIÉNDOTE' : (phase === 'wake' ? 'DESPERTANDO' : 'CICLO ' + cycNow + ' DE ' + sel.n);
+  $('wakeEl').textContent = fmtTime(sel.wakeMs);
+  $('backupEl').textContent = fmtTime(PLAN.backupMs);
+  drawWave(info.wave, info.color);
+
+  // ── Música: scheduling por reloj de audio con look-ahead ──
+  const ct = AC.currentTime;
+  while (nextChordAt < ct + 45){
+    const dur = 26 + Math.random() * 12;
+    playChord(nextChordAt, CHORDS[chordIdx % CHORDS.length], dur, phase === 'wake' ? 1.3 : 1);
+    nextChordAt += dur - 3; // solape de 3 s entre acordes
+    chordIdx++;
   }
-  const d=new Date(diff*1000);
-  document.getElementById('clockEl').textContent=d.toISOString().substr(11,8);
-  const totalSecs=(wakeDate-new Date(startTime))/1000, prog=1-diff/totalSecs;
-  document.getElementById('ringArc').style.strokeDashoffset=521-prog*521;
-  document.getElementById('ringArc').style.stroke=phase.color;
-  let barPct=cyclePos<0.20?(cyclePos/0.20)*100:cyclePos<0.70?((cyclePos-0.20)/0.50)*100:((cyclePos-0.70)/0.30)*100;
-  document.getElementById('phaseBarEl').style.width=barPct+'%';
-  document.getElementById('phaseNameEl').textContent=phase.name;
-  document.getElementById('phaseNameEl').style.color=phase.color;
-  document.getElementById('phaseDescEl').textContent=phase.desc;
-  document.getElementById('hzEl').innerHTML=`${phase.hz.toFixed(1)}<span class="u"> Hz</span>`;
-  document.getElementById('cycNumEl').textContent=`${cycleNum}/${totalCyc}`;
-  document.getElementById('wakeEl').textContent=document.getElementById('wakeInput').value;
-  document.getElementById('cycleEl').textContent=`CICLO ${cycleNum}`;
-  drawWave(phase.hz,phase.color);
-  const ms=Date.now()-startTime;
-  NARR.forEach(n=>{if(!narrated.has(n.t)&&ms>=n.t){narrated.add(n.t);speak(n.text);}});
-  WAKE_NARR.forEach(n=>{const key=`w${n.mins}`;if(!wakeNarrated.has(key)&&diff<=n.mins*60){wakeNarrated.add(key);speak(n.text);}});
-  animId=requestAnimationFrame(engine);
+  if (phase !== 'deep' && ct >= nextMelodyAt){
+    const tones = CHORDS[(chordIdx + CHORDS.length - 1) % CHORDS.length];
+    const tone = tones[Math.floor(Math.random() * tones.length)];
+    playMelodyNote(ROOT * tone * 2, phase === 'wake' ? 0.026 : 0.020);
+    nextMelodyAt = ct + (phase === 'wake' ? 9 + Math.random()*9 : (phase === 'light' ? 20 + Math.random()*18 : 16 + Math.random()*14));
+  }
+  // Pájaros: SOLO inducción (hasta 10 min tras dormirte estimado)
+  // y amanecer. En el núcleo de la noche: ningún evento.
+  if (SET.birds && ct >= nextBirdAt){
+    if (phase === 'relax' && now < PLAN.sleepMs + 10*60000){ playBird(false); nextBirdAt = ct + 45 + Math.random()*75; }
+    else if (phase === 'wake'){ playBird(true); nextBirdAt = ct + 20 + Math.random()*30; }
+    else nextBirdAt = ct + 30;
+  }
+
+  // ── Narraciones opcionales ──
+  const elapsed = (now - PLAN.startMs) / 1000;
+  NARR.forEach(n => { if (elapsed >= n.s && !narrated.has(n.s)){ narrated.add(n.s); speak(n.text); } });
+  if (phase === 'wake'){
+    const beforeMin = (sel.wakeMs - now) / 60000;
+    WAKE_NARR.forEach(n => { const k = 'w' + n.beforeMin; if (beforeMin <= n.beforeMin && !wakeNarrated.has(k)){ wakeNarrated.add(k); speak(n.text); } });
+  }
+
+  // ── Respaldo tras la hora límite y pantalla de despertar ──
+  if (now >= PLAN.backupMs && now - lastChimeAt > 120000){ playChime(); lastChimeAt = now; }
+  if (now >= sel.wakeMs + 10*60000) enterWake(true);
 }
 
-function goTo(id){document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');}
+function enterWake(auto){
+  if (wakeShown) return;
+  wakeShown = true;
+  if (tickTimer){ clearInterval(tickTimer); tickTimer = null; }
+  if (AC && masterGain){
+    masterGain.gain.setTargetAtTime(0.0001, AC.currentTime, 5);
+    const ref = AC;
+    setTimeout(() => { if (AC === ref){ ref.close().catch(() => {}); AC = null; } }, 30000);
+  }
+  renderDreamLog();
+  goTo('sW');
+}
+
+function endSession(){
+  if (tickTimer){ clearInterval(tickTimer); tickTimer = null; }
+  if (AC){ const ref = AC; AC = null; ref.close().catch(() => {}); }
+  binL = binR = null;
+  const anchor = $('iosAnchor');
+  if (anchor) anchor.pause();
+  rampStarted = false; wakeShown = false; currentPhase = '';
+  chordIdx = 0; lastChimeAt = 0; tonight = null;
+  narrated.clear(); wakeNarrated.clear();
+  document.body.classList.remove('bo');
+  renderPlan();
+  goTo('sS');
+}
 
 // ═══════════════════════════════════════════════════════════════
-//  ARRANQUE — con configuración de iOS background audio
+//  BLOQUE F: CAPTURA DEL SUEÑO (al despertar, en 1 toque)
+//  El recuerdo se pierde >8 min tras el REM (Dement & Kleitman
+//  1957): por eso esta pantalla llega antes que cualquier otra.
+//  Los sueños se guardan en el teléfono; el Diario de Sueños de
+//  Mike vive con Nova — de aquí se copia y se pega en el chat.
 // ═══════════════════════════════════════════════════════════════
-document.getElementById('startBtn').addEventListener('click', async () => {
-  // 1. Configurar y arrancar el anchor de iOS
+function renderDreamLog(){
+  const dreams = loadList('vita2_dreams').slice(-3).reverse();
+  const labels = { text:'con detalle', white:'soñé algo, sin detalle', none:'no lo recuerdo' };
+  $('dreamLog').innerHTML = dreams.map(d =>
+    '<div><span class="dl-t">' + d.date + '</span> · ' + (labels[d.kind] || '') +
+    (d.text ? ' · “' + d.text.slice(0, 60).replace(/</g, '') + (d.text.length > 60 ? '…' : '') + '”' : '') + '</div>'
+  ).join('');
+}
+
+function saveDream(kind){
+  const text = $('dreamText').value.trim();
+  if (kind === 'text' && !text){ $('wakeSavedMsg').textContent = 'Escribe unas líneas o usa los botones rápidos.'; return; }
+  const dreams = loadList('vita2_dreams');
+  dreams.push({ date: new Date().toISOString().slice(0,10), when: new Date().toISOString(), kind, text });
+  saveList('vita2_dreams', dreams);
+  if (tonight){
+    const nights = loadList('vita2_nights');
+    const idx = nights.findIndex(n => n.start === tonight.start);
+    const upd = { remembered: kind === 'none' ? 'no' : (kind === 'white' ? 'blanco' : 'si'), kind };
+    if (idx >= 0) nights[idx] = { ...nights[idx], ...upd };
+    tonight = { ...tonight, ...upd };
+    saveList('vita2_nights', nights);
+  }
+  $('wakeSavedMsg').textContent = 'Guardado en este teléfono ✓ — cópialo y pégalo en tu chat con Nova para sellarlo en tu Diario de Sueños.';
+  renderDreamLog();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  BLOQUE G: CABLEADO E INICIO
+// ═══════════════════════════════════════════════════════════════
+let visSetup = false;
+const _origVis = setupVisibilityHandler;
+setupVisibilityHandler = function(){ if (visSetup) return; visSetup = true; _origVis(); };
+
+function bindSettings(){
+  $('deadlineInput').value = SET.deadline;
+  $('latRange').value = SET.latency; $('latVal').textContent = SET.latency + ' min';
+  $('cycRange').value = SET.cycle; $('cycVal').textContent = SET.cycle + ' min';
+  $('volRange').value = SET.volume; $('volVal').textContent = SET.volume + '%';
+  $('optBirds').checked = !!SET.birds;
+  $('optBinaural').checked = !!SET.binaural;
+  $('optVoice').checked = !!SET.voice;
+  document.querySelectorAll('.snd').forEach(b => {
+    b.classList.toggle('on', b.dataset.s === SET.ambient);
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.snd').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      SET.ambient = b.dataset.s; saveSettings();
+    });
+  });
+  $('deadlineInput').addEventListener('change', e => { SET.deadline = e.target.value || '06:30'; saveSettings(); renderPlan(); });
+  $('latRange').addEventListener('input', e => { SET.latency = Number(e.target.value); $('latVal').textContent = SET.latency + ' min'; saveSettings(); renderPlan(); });
+  $('cycRange').addEventListener('input', e => { SET.cycle = Number(e.target.value); $('cycVal').textContent = SET.cycle + ' min'; saveSettings(); renderPlan(); });
+  $('volRange').addEventListener('input', e => {
+    SET.volume = Number(e.target.value); $('volVal').textContent = SET.volume + '%'; saveSettings();
+    if (AC && masterGain && !rampStarted) masterGain.gain.setTargetAtTime(volNight(), AC.currentTime, 2);
+  });
+  $('optBirds').addEventListener('change', e => { SET.birds = e.target.checked; saveSettings(); });
+  $('optBinaural').addEventListener('change', e => { SET.binaural = e.target.checked; saveSettings(); });
+  $('optVoice').addEventListener('change', e => { SET.voice = e.target.checked; saveSettings(); if (SET.voice && window.speechSynthesis) speechSynthesis.getVoices(); });
+}
+
+$('startBtn').addEventListener('click', async () => {
+  renderPlan(); // el plan se calcula con la hora real de inicio
   const anchor = setupIOSAnchor();
   try { await anchor.play(); } catch(e) { console.warn('iOS anchor play failed:', e); }
 
-  // 2. Crear AudioContext
   AC = new (window.AudioContext || window.webkitAudioContext)();
   if (AC.state === 'suspended') await AC.resume();
 
-  // 3. Configurar tiempo
-  startTime = Date.now();
-  const [h, m] = document.getElementById('wakeInput').value.split(':');
-  wakeDate = new Date();
-  wakeDate.setHours(+h, +m, 0, 0);
-  if (wakeDate <= new Date()) wakeDate.setDate(wakeDate.getDate() + 1);
-
-  // 4. Construir grafo de audio
-  masterGain = AC.createGain(); masterGain.gain.value = 0.78; masterGain.connect(AC.destination);
+  masterGain = AC.createGain();
+  masterGain.gain.setValueAtTime(volNight(), AC.currentTime);
+  masterGain.connect(AC.destination);
   reverbNode = buildReverb(AC); reverbNode.connect(masterGain);
-  pianoWave  = AC.createPeriodicWave(PIANO_REAL, PIANO_IMAG, { disableNormalization: false });
 
-  startAmbient(AC, selectedSound, masterGain);
-  startBinaural(AC, 8, masterGain);
-  setTimeout(() => { melodyOn = true; scheduleRelaxMelody(); }, 30000);
-  stochasticTmr = setTimeout(scheduleVariation, 300000);
+  startAmbient(AC, SET.ambient);
+  chordIdx = 0;
+  nextChordAt = AC.currentTime + 1.2;
+  nextMelodyAt = AC.currentTime + 18;
+  nextBirdAt = AC.currentTime + 40;
+  if (SET.binaural) startBinaural(AC);
 
-  // 5. Media Session API — registrar con iOS
   setupMediaSession();
-
-  // 6. Listener de visibilitychange
   setupVisibilityHandler();
+  grabWakeLock();
 
-  // 7. Voz
-  if (window.speechSynthesis) {
-    speechSynthesis.getVoices();
-    speechSynthesis.onvoiceschanged = () => { voiceOn = true; };
-    if (speechSynthesis.getVoices().length > 0) voiceOn = true;
-  }
+  const nights = loadList('vita2_nights');
+  tonight = {
+    date: new Date().toISOString().slice(0,10),
+    start: new Date(PLAN.startMs).toISOString(),
+    wakePlanned: new Date(PLAN.selected.wakeMs).toISOString(),
+    cycleMin: SET.cycle, latencyMin: SET.latency,
+    remembered: null, kind: null
+  };
+  nights.push(tonight); saveList('vita2_nights', nights);
 
+  $('dreamText').value = ''; $('wakeSavedMsg').textContent = '';
   goTo('sA');
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
   updateBgStatus('🎵 Audio activo');
-  engine();
+  tickTimer = setInterval(tick, 500);
+  tick();
 });
 
-document.getElementById('restartBtn').addEventListener('click', () => {
-  if (AC) { AC.close(); AC = null; }
-  cancelAnimationFrame(animId);
-  clearTimeout(stochasticTmr);
-  melodyOn = false; currentPhase = '';
-  binL = binR = null; ambGainNode = null; pianoWave = null;
-  narrated.clear(); wakeNarrated.clear();
-  wPh = 0;
-  const anchor = document.getElementById('iosAnchor');
-  if (anchor) { anchor.pause(); anchor.src = ''; }
-  goTo('sS');
+$('wakeNowBtn').addEventListener('click', () => enterWake(false));
+$('stopBtn').addEventListener('click', () => endSession());
+$('restartBtn').addEventListener('click', () => endSession());
+$('saveDreamBtn').addEventListener('click', () => saveDream('text'));
+$('dreamWhiteBtn').addEventListener('click', () => saveDream('white'));
+$('dreamNoneBtn').addEventListener('click', () => saveDream('none'));
+$('copyDreamBtn').addEventListener('click', async () => {
+  const text = $('dreamText').value.trim();
+  if (!text){ $('wakeSavedMsg').textContent = 'Nada que copiar todavía: escribe tu sueño primero.'; return; }
+  const full = 'Sueño ' + new Date().toISOString().slice(0,10) + ': ' + text;
+  try { await navigator.clipboard.writeText(full); $('wakeSavedMsg').textContent = 'Copiado ✓ — pégalo en tu chat con Nova.'; }
+  catch(e) { $('dreamText').select(); try { document.execCommand('copy'); } catch(e2) {} $('wakeSavedMsg').textContent = 'Copiado ✓ — pégalo en tu chat con Nova.'; }
+});
+if (navigator.share) $('shareDreamBtn').style.display = '';
+$('shareDreamBtn').addEventListener('click', async () => {
+  const text = $('dreamText').value.trim();
+  try { await navigator.share({ title: 'Mi sueño', text: text || 'Soñé algo, pero no recuerdo qué.' }); } catch(e) {}
 });
 
+// Oscurecer tocando el fondo de la pantalla activa (heredado de v1)
 document.addEventListener('click', e => {
   if (!document.getElementById('sA').classList.contains('hidden') &&
-      !e.target.closest('.go-btn') && !e.target.closest('.rbtn')) {
+      !e.target.closest('button, textarea, input, label, .chip, .snd')) {
     document.body.classList.toggle('bo');
   }
 });
+
+// ── Init ──
+bindSettings();
+renderPlan();
+if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) {
+  const tip = $('iosTip');
+  if (tip) tip.style.display = 'none';
+}
 </script>
 
 </body>
